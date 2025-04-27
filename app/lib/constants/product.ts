@@ -10,6 +10,10 @@ export const PRODUCT_METAFIELDS_IDENTIFIERS = [
     namespace: 'custom',
     key: 'featured_description',
   },
+  {
+    namespace: 'custom',
+    key: 'featured_title',
+  },
 ] as MetafieldIdentifier[];
 
 /* Ensure updating this ratio as needed. Required format is 'width/height' */

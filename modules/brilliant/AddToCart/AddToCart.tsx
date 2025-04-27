@@ -70,7 +70,9 @@ export function AddToCart({
   }, [isAdded, onAddToCart]);
 
   const isUpdatingClass = isAdding || cartIsUpdating ? 'cursor-default' : '';
-  const isNotifyMeClass = isNotifyMe ? 'btn-inverse-dark' : 'primary';
+  const isNotifyMeClass = isNotifyMe
+    ? 'btn-inverse-dark'
+    : 'primary py-2 px-4 h-10';
 
   return (
     <div className={`${containerClassName}`}>
