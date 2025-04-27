@@ -16,6 +16,17 @@ export function Schema() {
         defaultValue: 'Products Slider Heading',
       },
       {
+        label: 'Design Layout',
+        name: 'design',
+        component: 'select',
+        options: [
+          {label: 'Normal', value: 'normal'},
+          {label: 'Expanded', value: 'expanded'},
+        ],
+        defaultValue: 'normal',
+        description: 'Expanded layout shows extra sentence and product tags.',
+      },
+      {
         label: 'Products',
         name: 'products',
         component: 'group-list',
