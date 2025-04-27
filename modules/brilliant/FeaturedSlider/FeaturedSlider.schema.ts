@@ -1,4 +1,3 @@
-import {BUTTONS} from '~/settings/common';
 import {containerSettings} from '~/settings/container';
 
 export function Schema() {
@@ -43,34 +42,6 @@ export function Schema() {
           },
         ],
         defaultValue: [{handle: ''}, {handle: ''}, {handle: ''}, {handle: ''}],
-      },
-      {
-        label: 'Section Settings',
-        name: 'section',
-        component: 'group',
-        description: 'Button style, full width',
-        fields: [
-          {
-            label: 'Button Style',
-            name: 'buttonStyle',
-            component: 'select',
-            options: BUTTONS,
-          },
-          {
-            label: 'Full Width',
-            name: 'fullWidth',
-            component: 'toggle',
-            description: 'Removes max width from contained styles',
-            toggleLabels: {
-              true: 'On',
-              false: 'Off',
-            },
-          },
-        ],
-        defaultValue: {
-          buttonStyle: 'btn-primary',
-          fullWidth: false,
-        },
       },
       containerSettings(),
     ],
