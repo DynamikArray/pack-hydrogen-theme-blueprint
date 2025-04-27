@@ -1,18 +1,18 @@
 import {useMemo} from 'react';
 import {useInView} from 'react-intersection-observer';
 
-import {Schema} from './BrilliantProductsSlider.schema';
+import {Schema} from './FeaturedProducts.schema';
+import {BrilliantFeaturedProductsCms} from './FeaturedProducts.types';
+import {FeaturedProductsContainer} from './FeaturedProductsContainer';
 
 import {Container} from '~/components/Container';
-import {ProductsSlider as ProductsSliderComponent} from '~/components/ProductsSlider';
-import type {ProductsSliderCms} from '~/components/ProductsSlider';
 import {useProductsByIds} from '~/hooks';
 import type {ContainerSettings} from '~/settings/container';
 
-export function BrilliantProductsSlider({
+export function FeaturedProducts({
   cms,
 }: {
-  cms: ProductsSliderCms & {container: ContainerSettings};
+  cms: BrilliantFeaturedProductsCms & {container: ContainerSettings};
 }) {
   const {ref, inView} = useInView({
     rootMargin: '200px',
@@ -22,8 +22,8 @@ export function BrilliantProductsSlider({
   const productIds = useMemo(() => {
     return (
       cms.products?.reduce((acc: string[], {product}) => {
-        if (!product?.id) return acc;
-        return [...acc, product.id];
+        if (product?.id) acc.push(product.id);
+        return acc;
       }, []) || []
     );
   }, [cms.products]);
@@ -33,11 +33,11 @@ export function BrilliantProductsSlider({
   return (
     <Container container={cms.container}>
       <div ref={ref}>
-        <ProductsSliderComponent cms={cms} products={products} />
+        <FeaturedProductsContainer products={products} cms={cms} />
       </div>
     </Container>
   );
 }
 
-BrilliantProductsSlider.displayName = 'BrilliantProductsSlider';
-BrilliantProductsSlider.Schema = Schema;
+FeaturedProducts.displayName = 'BrilliantFeaturedProducts';
+FeaturedProducts.Schema = Schema;

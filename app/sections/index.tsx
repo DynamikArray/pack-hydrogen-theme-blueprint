@@ -1,8 +1,8 @@
 import {registerSection} from '@pack/react';
 import type {Section} from '@pack/types';
 
-import {BrilliantProductsSlider} from '../../modules/brilliant/BrilliantProductSlider';
 import {BuildYourOwnPack} from '../../modules/brilliant/BuildYourOwnPack';
+import {FeaturedProducts} from '../../modules/brilliant/FeatureProducts';
 
 import {Accordions} from './Accordions';
 import {Banner} from './Banner';
@@ -109,8 +109,8 @@ export function registerSections() {
   registerSection(MetaobjectImage as Section, {name: 'metaobject-image'});
 
   /* Brilliant Sections --------*/
-  registerSection(BrilliantProductsSlider as Section, {
-    name: 'brilliant-products-slider',
+  registerSection(FeaturedProducts as Section, {
+    name: 'brilliant-featured-products',
   });
 
   registerSection(BuildYourOwnPack as Section, {name: 'build-your-own-pack'});

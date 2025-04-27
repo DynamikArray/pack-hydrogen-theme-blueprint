@@ -1,0 +1,84 @@
+import {containerSettings} from '~/settings/container';
+
+export function Schema() {
+  return {
+    category: 'Product',
+    label: 'Brilliant Featured Products',
+    key: 'brilliant-featured-products',
+    previewSrc:
+      'https://cdn.shopify.com/s/files/1/0629/5519/2520/files/feature-products-preview.jpg?v=1714094934',
+    fields: [
+      {
+        label: 'Heading',
+        name: 'heading',
+        component: 'text',
+        defaultValue: 'Featured Products',
+      },
+      {
+        label: 'Design Layout',
+        name: 'design',
+        component: 'select',
+        options: [
+          {label: 'Normal', value: 'normal'},
+          {label: 'Expanded', value: 'expanded'},
+        ],
+        defaultValue: 'normal',
+        description: 'Expanded layout shows extra sentence and product tags.',
+      },
+
+      {
+        label: 'Linked Collection',
+        name: 'collection',
+        component: 'collection',
+        description: 'Link this block to a Shopify collection.',
+      },
+      {
+        label: 'Products',
+        name: 'products',
+        component: 'group-list',
+        itemProps: {
+          label: '{{item.product.handle}}',
+        },
+        fields: [
+          {
+            name: 'product',
+            component: 'productSearch',
+            label: 'Product',
+          },
+          {
+            label: 'Extra Sentence',
+            name: 'extraSentence',
+            component: 'textarea',
+            condition: {
+              when: 'design',
+              is: 'expanded',
+            },
+            description: 'Optional extra sentence shown in Expanded layout.',
+          },
+        ],
+        defaultValue: [],
+      },
+      {
+        label: 'Section Settings',
+        name: 'section',
+        component: 'group',
+        description: 'Section display controls',
+        fields: [
+          {
+            label: 'Full Width',
+            name: 'fullWidth',
+            component: 'toggle',
+            toggleLabels: {
+              true: 'On',
+              false: 'Off',
+            },
+          },
+        ],
+        defaultValue: {
+          fullWidth: false,
+        },
+      },
+      containerSettings(),
+    ],
+  };
+}
