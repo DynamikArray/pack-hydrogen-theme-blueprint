@@ -325,9 +325,7 @@
   /* button specific */
   .btn-text {
     @apply font-sans
-      text-base
-      font-bold
-      uppercase
+      text-base      
       tracking-wider;
   }
   .btn {

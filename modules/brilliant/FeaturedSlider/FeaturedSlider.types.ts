@@ -2,7 +2,7 @@ import type {ProductCms} from '~/lib/types';
 
 export interface FeaturedSliderCms {
   heading: string;
-  design: string;
+  design: 'expanded' | 'normal';
   limit?: number;
   products: {
     product: ProductCms;

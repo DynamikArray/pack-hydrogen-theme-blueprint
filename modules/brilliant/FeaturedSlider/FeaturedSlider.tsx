@@ -3,6 +3,7 @@ import {useInView} from 'react-intersection-observer';
 
 import {Schema} from './FeaturedSlider.schema';
 import type {FeaturedSliderCms} from './FeaturedSlider.types';
+import {FeaturedSliderContainer} from './FeaturedSliderContainer';
 
 import {Container} from '~/components/Container';
 import {useProductsByIds} from '~/hooks';
@@ -32,7 +33,9 @@ export function FeaturedSlider({
   return (
     <Container container={cms.container}>
       <div ref={ref}>
-        <div> hello world</div>
+        <div className="p-3">
+          <FeaturedSliderContainer products={products} cms={cms} />
+        </div>
       </div>
     </Container>
   );
