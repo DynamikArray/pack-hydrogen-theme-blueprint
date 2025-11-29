@@ -1,10 +1,10 @@
-import {
-  ProductOptionValue,
-  ProductVariant,
-} from '@shopify/hydrogen/storefront-api-types';
+import {ProductOptionValue} from '@shopify/hydrogen/storefront-api-types';
 import {useProduct} from '@shopify/hydrogen-react';
 import {QuantitySelector} from 'modules/brilliant/components/QuantitySelector';
 import {useCallback, useEffect, useMemo, useState} from 'react';
+
+import {BundleSelection} from '../Bundle/BundleConfig.types';
+import {BundlePicker} from '../Bundle/BundlePicker';
 
 import type {
   ProductDetailsProps,
@@ -22,11 +22,26 @@ export function ProductDetails({
   isModalProduct,
   product,
   selectedVariant,
+  bundleConfig,
 }: ProductDetailsProps) {
   const {setSelectedOption} = useProduct();
   const swatchesMap = useColorSwatches();
 
   const [quantity, setQuantity] = useState(1);
+
+  //Brilliant Bundle Handling
+  const [bundleSelection, setBundleSelection] =
+    useState<BundleSelection | null>(null);
+
+  const hasBundle =
+    !!bundleConfig &&
+    bundleConfig.enabled &&
+    bundleConfig.requiredCount > 0 &&
+    bundleConfig.options.length > 0;
+
+  const isBundleIncomplete = hasBundle && !bundleSelection?.isComplete;
+  const lineItemAttributes = bundleSelection?.attributes ?? [];
+  // END Brilliant Bundle Handling
 
   const selectedOptionsMap = useMemo(() => {
     if (!selectedVariant) return null;
@@ -113,6 +128,11 @@ export function ProductDetails({
         />
       )}
 
+      {/* NEW: bundle picker, right after other product options */}
+      {hasBundle && bundleConfig && (
+        <BundlePicker config={bundleConfig} onChange={setBundleSelection} />
+      )}
+
       <div className="flex flex-row gap-8 p-4">
         {enabledQuantitySelector && (
           <QuantitySelector
@@ -129,6 +149,8 @@ export function ProductDetails({
             isPdp
             quantity={quantity}
             selectedVariant={selectedVariant}
+            disabled={isBundleIncomplete}
+            lineItemAttributes={lineItemAttributes}
           />
         </div>
       </div>

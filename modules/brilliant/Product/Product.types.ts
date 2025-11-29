@@ -3,6 +3,8 @@ import type {
   ProductVariant,
 } from '@shopify/hydrogen/storefront-api-types';
 
+import {BundleConfig} from '../Bundle/BundleConfig.types';
+
 import type {SelectedVariant, Settings} from '~/lib/types';
 
 export interface ProductProps {
@@ -10,6 +12,7 @@ export interface ProductProps {
   isModalProduct?: boolean;
   isSectionProduct?: boolean;
   product: Product;
+  bundleConfig?: BundleConfig | null;
 }
 
 export interface ProductDetailsProps {
@@ -17,6 +20,7 @@ export interface ProductDetailsProps {
   isModalProduct?: boolean;
   product: Product;
   selectedVariant: SelectedVariant;
+  bundleConfig?: BundleConfig | null;
 }
 
 export type ProductOptionVariantImageMap = Record<

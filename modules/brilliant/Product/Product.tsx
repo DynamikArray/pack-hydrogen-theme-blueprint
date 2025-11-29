@@ -1,5 +1,5 @@
 import {useProduct} from '@shopify/hydrogen-react';
-import {useEffect, useMemo} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 
 //import {ProductMetafields} from './ProductMetafields';
 import {Breadcrumbs} from '../components/Breadcrumbs';
@@ -20,6 +20,7 @@ export function Product({
   isModalProduct,
   isSectionProduct,
   product,
+  bundleConfig,
 }: ProductProps) {
   const {selectedVariant: providerSelectedVariant} = useProduct() as {
     selectedVariant: SelectedVariant;
@@ -138,6 +139,7 @@ export function Product({
                 isModalProduct={isModalProduct}
                 product={product}
                 selectedVariant={selectedVariant}
+                bundleConfig={bundleConfig}
               />
 
               {/* <ProductMetafields product={product} /> */}
