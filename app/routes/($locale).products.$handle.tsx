@@ -5,6 +5,7 @@ import type {ShopifyAnalyticsProduct} from '@shopify/hydrogen';
 import {ProductProvider} from '@shopify/hydrogen-react';
 import type {LoaderFunctionArgs, MetaArgs} from '@shopify/remix-oxygen';
 import {BYOP_PRODUCT_HANDLE} from 'modules/brilliant/BuildYourOwnPack/BuildYourPackConfig';
+import type {BundleConfig} from 'modules/brilliant/Bundle/BundleConfig.types';
 import {Product} from 'modules/brilliant/Product/Product';
 
 import {routeHeaders} from '~/data/cache';
@@ -135,9 +136,69 @@ export async function loader({params, context, request}: LoaderFunctionArgs) {
     url: request.url,
   });
 
+  // BRILLIANT CUSTOM BUNDLE CONFIG FROM METAFIELDS
+  // --- build bundleConfig from the raw storefront product (queriedProduct) ---
+  let bundleConfig: BundleConfig | null = null;
+
+  const brilliantBundleIsEnabled =
+    queriedProduct.brilliantBundleEnabled?.value === 'true';
+
+  if (brilliantBundleIsEnabled) {
+    const label =
+      queriedProduct.brilliantBundleLabel?.value?.trim() || 'Option';
+
+    const requiredCount = queriedProduct.brilliantBundleRequiredCount?.value
+      ? parseInt(queriedProduct.brilliantBundleRequiredCount.value, 10)
+      : 0;
+
+    const options: BrilliantBundleOption[] = [];
+
+    const optsField = queriedProduct.brilliantBundleOptions;
+
+    const nodes = optsField?.references?.nodes ?? [];
+
+    for (const node of nodes) {
+      if (!node) continue;
+
+      // node is a Metaobject as per your fragment
+      let optionLabel = '';
+      let imageUrl: string | undefined;
+      let imageAlt: string | null | undefined;
+
+      for (const field of node.fields ?? []) {
+        if (field.key === 'title') {
+          optionLabel = field.value ?? '';
+        }
+        if (field.key === 'image' && field.reference?.image) {
+          imageUrl = field.reference.image.url;
+          imageAlt = field.reference.image.altText;
+        }
+      }
+
+      if (optionLabel) {
+        options.push({
+          id: node.id,
+          label: optionLabel,
+          imageUrl,
+          imageAlt,
+        });
+      }
+    }
+
+    if (requiredCount > 0 && options.length > 0) {
+      bundleConfig = {
+        enabled: true,
+        label,
+        requiredCount,
+        options,
+      };
+    }
+  }
+
   return {
     analytics,
     product,
+    bundleConfig,
     productPage,
     productStatus,
     selectedVariant,
@@ -156,6 +217,7 @@ export default function ProductRoute() {
     product: initialProduct,
     productPage,
     selectedVariant: initialSelectedVariant,
+    bundleConfig,
   } = useLoaderData<typeof loader>();
   const {isCartReady} = useGlobal();
   const product = useProductWithGrouping(initialProduct);
@@ -171,6 +233,7 @@ export default function ProductRoute() {
           <Product
             product={product}
             initialSelectedVariant={initialSelectedVariant}
+            bundleConfig={bundleConfig}
           />
         )}
 

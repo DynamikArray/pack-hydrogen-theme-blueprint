@@ -1,11 +1,11 @@
-import {useEffect} from 'react';
 import type {
   AttributeInput,
   SellingPlan,
 } from '@shopify/hydrogen/storefront-api-types';
+import {useEffect, useMemo} from 'react';
 
-import {BackInStockModal} from '~/components/BackInStockModal';
 import {LoadingDots} from '~/components/Animations';
+import {BackInStockModal} from '~/components/BackInStockModal';
 import {useAddToCart} from '~/hooks';
 import type {SelectedVariant} from '~/lib/types';
 
@@ -21,6 +21,8 @@ interface AddToCartProps {
   price?: string;
   selectedVariant: SelectedVariant;
   sellingPlanId?: SellingPlan['id'];
+  disabled?: boolean;
+  lineItemAttributes?: AttributeInput[];
 }
 
 export function AddToCart({
@@ -35,7 +37,15 @@ export function AddToCart({
   price,
   selectedVariant,
   sellingPlanId,
+  disabled,
+  lineItemAttributes,
 }: AddToCartProps) {
+  // Merge any "global" attributes with extra line item attributes (e.g. bundle)
+  const mergedAttributes = useMemo(
+    () => [...(attributes ?? []), ...(lineItemAttributes ?? [])],
+    [attributes, lineItemAttributes],
+  );
+
   const {
     buttonText,
     cartIsUpdating,
@@ -48,7 +58,7 @@ export function AddToCart({
     handleNotifyMe,
   } = useAddToCart({
     addToCartText,
-    attributes,
+    attributes: mergedAttributes,
     quantity,
     selectedVariant,
     sellingPlanId,
@@ -63,12 +73,15 @@ export function AddToCart({
   const isUpdatingClass = isAdding || cartIsUpdating ? 'cursor-default' : '';
   const isNotifyMeClass = isNotifyMe ? 'btn-inverse-dark' : 'btn-primary';
 
+  const isButtonDisabled =
+    (!!isSoldOut && !isNotifyMe) || !!disabled || isAdding || cartIsUpdating;
+
   return (
     <div className={`${containerClassName}`}>
       <button
         aria-label={buttonText}
         className={`${isNotifyMeClass} relative w-full ${isUpdatingClass} ${className}`}
-        disabled={!!isSoldOut && !isNotifyMe}
+        disabled={isButtonDisabled}
         onClick={() => {
           if (isNotifyMe) {
             handleNotifyMe(

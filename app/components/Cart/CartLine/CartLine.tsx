@@ -79,11 +79,26 @@ export const CartLine = memo(({closeCart, line}: CartLineProps) => {
               .filter((attr) => /^_item_\d+_title$/.test(attr?.key))
               .map((attr) => {
                 return (
-                  <li key={attr.key} className="text-sm">
+                  <li key={attr.key} className="text-xs">
                     {attr.value}
                   </li>
                 );
               })}
+          </ul>
+
+          {/* BRILLIANT Custom Bundle Attributes */}
+          <ul>
+            {line.attributes
+              .filter(
+                (attr) =>
+                  !/^_item_\d+_title$/.test(attr.key) && // exclude Shopify bundle attrs
+                  !attr.key.startsWith('_'), // exclude hidden/system attrs
+              )
+              .map((attr) => (
+                <li key={attr.key} className="text-xs">
+                  {attr.key}: {attr.value}
+                </li>
+              ))}
           </ul>
 
           <button

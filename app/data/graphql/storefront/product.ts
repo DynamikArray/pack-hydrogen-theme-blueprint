@@ -201,6 +201,65 @@ export const PRODUCT_FRAGMENT = `#graphql
   ${OPTION_FRAGMENT}
 ` as const;
 
+export const BRILLIANT_BUNDLE_FRAGMENT = `#graphql
+  fragment BrilliantBundleFragment on Product {
+    brilliantBundleEnabled: metafield(
+      namespace: "custom"
+      key: "brilliant_bundle_enabled"
+    ) {
+      type
+      value
+    }
+
+    brilliantBundleLabel: metafield(
+      namespace: "custom"
+      key: "brilliant_bundle_label"
+    ) {
+      type
+      value
+    }
+
+    brilliantBundleRequiredCount: metafield(
+      namespace: "custom"
+      key: "brilliant_bundle_required_count"
+    ) {
+      type
+      value
+    }
+
+    brilliantBundleOptions: metafield(
+      namespace: "custom"
+      key: "brilliant_bundle_options"
+    ) {
+      type
+      references(first: 50) {
+        nodes {
+          ... on Metaobject {
+            id
+            handle
+            type            
+            fields {
+              key
+              value
+              type
+              reference {
+                ... on MediaImage {
+                  image {
+                    url
+                    altText
+                    width
+                    height
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+` as const;
+
 export const PRODUCT_ITEM_FRAGMENT = `#graphql
   fragment ProductItemFragment on Product {
     id
@@ -290,10 +349,12 @@ export const PRODUCT_QUERY = `#graphql
     product(handle: $handle) {
       ... on Product {
         ...ProductFragment
+        ...BrilliantBundleFragment
       }
     }
   }
   ${PRODUCT_FRAGMENT}
+  ${BRILLIANT_BUNDLE_FRAGMENT}
 ` as const;
 
 export const PRODUCT_ITEM_QUERY = `#graphql
