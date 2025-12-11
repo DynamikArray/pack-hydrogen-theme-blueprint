@@ -20,14 +20,12 @@ export function useProductsByIds(
   fetchOnMount = true,
 ): Product[] {
   const {pathPrefix} = useLocale();
-  const fetcher = useFetcher<{products: Product[]}>({
-    key: `products-by-ids:${ids.join(',')}:${pathPrefix}`,
-  });
+  const fetcher = useFetcher<{products: Product[]}>();
 
   const idsString = JSON.stringify(ids);
 
   useEffect(() => {
-    if (!fetchOnMount || !ids?.length || fetcher.data?.products) return;
+    if (!fetchOnMount || !ids?.length) return;
     const searchParams = new URLSearchParams({
       query: ids
         .filter(Boolean)

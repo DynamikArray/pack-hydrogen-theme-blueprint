@@ -1,7 +1,7 @@
 import type {LoaderFunctionArgs} from '@shopify/remix-oxygen';
 
 import {PRODUCTS_SEARCH_QUERY} from '~/data/graphql/storefront/search';
-import {getSiteSettings} from '~/lib/utils';
+import {getSiteSettings} from '~/lib/server-utils/settings.server';
 
 export async function loader({request, context}: LoaderFunctionArgs) {
   const {storefront} = context;
@@ -16,11 +16,11 @@ export async function loader({request, context}: LoaderFunctionArgs) {
   );
 
   if (!searchTerm || searchTerm.length < characterMin)
-    return {
+    return Response.json({
       searchResults: {results: null, totalResults: 0},
       searchTerm,
       searchTypes: ['PRODUCT'],
-    };
+    });
 
   const count = Number(searchParams.get('count')) || 10;
 
@@ -34,12 +34,12 @@ export async function loader({request, context}: LoaderFunctionArgs) {
     cache: storefront.CacheShort(),
   });
 
-  return {
+  return Response.json({
     searchResults: {
       results: search.nodes || null,
       totalResults: search.totalCount ?? 0,
     },
     searchTerm,
     searchTypes: ['PRODUCT'],
-  };
+  });
 }

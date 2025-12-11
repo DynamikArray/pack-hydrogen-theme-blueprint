@@ -1,26 +1,27 @@
-import {memo} from 'react';
+import clsx from "clsx";
+import { memo } from "react";
 
-import type {UseDesktopMenuReturn} from '../useDesktopMenu';
-import type {UseMobileMenuReturn} from '../useMobileMenu';
+import type { UseDesktopMenuReturn } from "../useDesktopMenu";
+import type { UseMobileMenuReturn } from "../useMobileMenu";
 
-import {NavigationCart} from './NavigationCart';
-import {NavigationLogo} from './NavigationLogo';
+import { NavigationCart } from "./NavigationCart";
+import { NavigationLogo } from "./NavigationLogo";
 
-import {Link} from '~/components/Link';
-import {Svg} from '~/components/Svg';
-import {useCustomer, useMenu, useSettings} from '~/hooks';
-import {HEADER_NAVIGATION} from '~/lib/constants';
+import { Link } from "~/components/Link";
+import { Svg } from "~/components/Svg";
+import { useCustomer, useMenu, useSettings } from "~/hooks";
+import { HEADER_NAVIGATION } from "~/lib/constants";
 
 type NavigationProps = Pick<
   UseMobileMenuReturn,
-  'handleCloseMobileMenu' | 'handleOpenMobileMenu' | 'mobileMenuOpen'
+  "handleCloseMobileMenu" | "handleOpenMobileMenu" | "mobileMenuOpen"
 > &
   Pick<
     UseDesktopMenuReturn,
-    | 'desktopMenuIndex'
-    | 'handleDesktopMenuClose'
-    | 'handleDesktopMenuHoverIn'
-    | 'handleDesktopMenuHoverOut'
+    | "desktopMenuIndex"
+    | "handleDesktopMenuClose"
+    | "handleDesktopMenuHoverIn"
+    | "handleDesktopMenuHoverOut"
   >;
 
 export const Navigation = memo(
@@ -34,37 +35,44 @@ export const Navigation = memo(
     mobileMenuOpen,
   }: NavigationProps) => {
     const customer = useCustomer();
-    const {openSearch} = useMenu();
-    const {header} = useSettings();
+    const { closeAll, openSearch } = useMenu();
+    const { header } = useSettings();
     const {
-      bgColor = 'var(--background)',
-      textColor = 'var(--text)',
-      iconColor = 'var(--text)',
+      bgColor = "var(--background)",
+      textColor = "var(--text)",
+      iconColor = "var(--text)",
       logoPositionDesktop,
       navItems,
     } = {
       ...header?.menu,
     };
     const gridColsClassDesktop =
-      logoPositionDesktop === 'center'
-        ? 'lg:grid-cols-[1fr_auto_1fr]'
-        : 'lg:grid-cols-[auto_1fr_auto]';
+      logoPositionDesktop === "center"
+        ? "lg:grid-cols-[1fr_auto_1fr]"
+        : "lg:grid-cols-[auto_1fr_auto]";
     const logoOrderClassDesktop =
-      logoPositionDesktop === 'center' ? 'lg:order-2' : 'lg:order-1';
+      logoPositionDesktop === "center" ? "lg:order-2" : "lg:order-1";
     const menuOrderClassDesktop =
-      logoPositionDesktop === 'center' ? 'lg:order-1' : 'lg:order-2';
+      logoPositionDesktop === "center" ? "lg:order-1" : "lg:order-2";
 
     return (
       <div
-        className={`px-contained relative z-[1] grid flex-1 grid-cols-[1fr_auto_1fr] gap-4 border-b border-b-border transition md:gap-8 ${gridColsClassDesktop}`}
+        className={clsx(
+          "px-contained relative z-[1] grid flex-1 grid-cols-[1fr_auto_1fr] gap-4 border-b border-b-border transition md:gap-8",
+          gridColsClassDesktop,
+        )}
         data-comp={HEADER_NAVIGATION}
-        style={{backgroundColor: bgColor, color: textColor}}
+        style={{ backgroundColor: bgColor, color: textColor }}
       >
-        <div className={`order-2 flex items-center ${logoOrderClassDesktop}`}>
+        <div
+          className={clsx("order-2 flex items-center", logoOrderClassDesktop)}
+        >
           <NavigationLogo color={iconColor} />
         </div>
 
-        <div className={`order-1 flex items-center ${menuOrderClassDesktop}`}>
+        <div
+          className={clsx("order-1 flex items-center", menuOrderClassDesktop)}
+        >
           <nav className="hidden h-full lg:flex">
             <ul className="flex">
               {navItems?.map((item, index) => {
@@ -85,9 +93,10 @@ export const Navigation = memo(
                       </h5>
 
                       <div
-                        className={`absolute left-0 top-[calc(100%_-_2px)] h-[3px] w-full origin-center scale-0 border-t-2 border-t-primary bg-transparent transition after:w-full group-hover:scale-100 ${
-                          isHovered ? 'scale-100' : 'scale-0'
-                        }`}
+                        className={clsx(
+                          "absolute left-0 top-[calc(100%_-_2px)] h-[3px] w-full origin-center scale-0 border-t-2 border-t-primary bg-transparent transition after:w-full group-hover:scale-100",
+                          isHovered ? "scale-100" : "scale-0",
+                        )}
                       />
                     </Link>
                   </li>
@@ -99,14 +108,14 @@ export const Navigation = memo(
           <div className="flex items-center gap-4">
             <button
               aria-label={
-                mobileMenuOpen ? 'Close mobile menu' : 'Open mobile menu'
+                mobileMenuOpen ? "Close mobile menu" : "Open mobile menu"
               }
               className="w-5 lg:hidden"
               onClick={() => {
                 if (mobileMenuOpen) handleCloseMobileMenu();
                 else handleOpenMobileMenu();
               }}
-              style={{color: iconColor}}
+              style={{ color: iconColor }}
               type="button"
             >
               {mobileMenuOpen ? (
@@ -130,7 +139,7 @@ export const Navigation = memo(
               aria-label="Open search"
               className="block w-5 md:hidden"
               onClick={openSearch}
-              style={{color: iconColor}}
+              style={{ color: iconColor }}
               type="button"
             >
               <Svg
@@ -148,7 +157,7 @@ export const Navigation = memo(
             aria-label="Open search"
             className="hidden w-5 md:block"
             onClick={openSearch}
-            style={{color: iconColor}}
+            style={{ color: iconColor }}
             type="button"
           >
             <Svg
@@ -161,7 +170,8 @@ export const Navigation = memo(
 
           <Link
             aria-label="Go to account page"
-            style={{color: iconColor}}
+            onClick={closeAll}
+            style={{ color: iconColor }}
             to={customer ? `/account/orders` : `/account/login`}
           >
             <Svg
@@ -179,4 +189,4 @@ export const Navigation = memo(
   },
 );
 
-Navigation.displayName = 'Navigation';
+Navigation.displayName = "Navigation";

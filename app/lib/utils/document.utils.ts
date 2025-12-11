@@ -42,3 +42,35 @@ export const getCookieDomain = (url: string) => {
     return '';
   }
 };
+
+export const getExpirationDate = (days = 1) => {
+  const now = new Date();
+  const time = now.getTime();
+  const expireTime = time + 1000 * 86400 * days;
+  now.setTime(expireTime);
+  return now;
+};
+
+export const deleteCookie = (cookieName: string) => {
+  document.cookie = `${cookieName}=; Expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+};
+
+/**
+ * Validates that a url is local
+ * @param url
+ * @returns `true` if local `false`if external domain
+ */
+export function isLocalPath(url: string) {
+  try {
+    // We don't want to redirect cross domain,
+    // doing so could create fishing vulnerability
+    // If `new URL()` succeeds, it's a fully qualified
+    // url which is cross domain. If it fails, it's just
+    // a path, which will be the current domain.
+    new URL(url);
+  } catch (e) {
+    return true;
+  }
+
+  return false;
+}

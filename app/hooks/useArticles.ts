@@ -22,12 +22,10 @@ export function useArticles(
   fetchOnMount = true,
 ) {
   const {pathPrefix} = useLocale();
-  const fetcher = useFetcher<{articles: Article[]}>({
-    key: `articles-by-blog-handle:${handle}:${pathPrefix}`,
-  });
+  const fetcher = useFetcher<{articles: Article[]}>();
 
   useEffect(() => {
-    if (!fetchOnMount || !handle || fetcher.data?.articles) return;
+    if (!fetchOnMount || !handle) return;
     const searchParams = new URLSearchParams({
       handle,
       limit: limit?.toString() || '3',

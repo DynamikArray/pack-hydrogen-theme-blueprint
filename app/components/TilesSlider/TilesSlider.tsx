@@ -1,8 +1,9 @@
 import {useState, forwardRef} from 'react';
-import type {SwiperClass} from 'swiper/react';
 import {Swiper, SwiperSlide} from 'swiper/react';
+import clsx from 'clsx';
+import type {SwiperClass} from 'swiper/react';
 
-import {Spinner} from '~/components/Animations';
+import {SwiperSkeleton} from '~/components/SwiperSkeleton';
 import type {MediaCms} from '~/lib/types';
 
 import {TilesSliderTile} from './TilesSliderTile';
@@ -40,36 +41,48 @@ export const TilesSlider = forwardRef(
   ) => {
     const [swiper, setSwiper] = useState<SwiperClass | null>(null);
 
+    const breakpoints = {
+      mobile: {
+        slidesPerView: tilesPerViewMobile,
+        slidesOffsetBefore: 16,
+        slidesOffsetAfter: 16,
+        spaceBetween: 16,
+      },
+      tablet: {
+        slidesPerView: tilesPerViewTablet,
+        slidesOffsetBefore: 32,
+        slidesOffsetAfter: 32,
+        spaceBetween: 20,
+      },
+      desktop: {
+        slidesPerView: tilesPerViewDesktop,
+        slidesOffsetBefore: 0,
+        slidesOffsetAfter: 0,
+        spaceBetween: 20,
+      },
+    };
+
     const isGridOnDesktop = tiles?.length === tilesPerViewDesktop;
 
     return tiles?.length > 0 ? (
-      <div className={`mx-auto ${maxWidthClass}`} ref={ref}>
+      <div className={clsx('mx-auto', maxWidthClass)} ref={ref}>
         {/* mobile/tablet/desktop */}
         <div
-          className={`relative [&_.swiper]:overflow-visible ${
-            isGridOnDesktop ? 'lg:hidden' : ''
-          }`}
+          className={clsx(
+            'relative [&_.swiper]:overflow-visible',
+            isGridOnDesktop && 'lg:hidden',
+          )}
         >
           <Swiper
             grabCursor
             onSwiper={setSwiper}
-            slidesOffsetAfter={16}
-            slidesOffsetBefore={16}
-            slidesPerView={tilesPerViewMobile}
-            spaceBetween={16}
+            slidesOffsetAfter={breakpoints.mobile.slidesOffsetAfter}
+            slidesOffsetBefore={breakpoints.mobile.slidesOffsetBefore}
+            slidesPerView={breakpoints.mobile.slidesPerView}
+            spaceBetween={breakpoints.mobile.spaceBetween}
             breakpoints={{
-              768: {
-                slidesPerView: tilesPerViewTablet,
-                slidesOffsetBefore: 32,
-                slidesOffsetAfter: 32,
-                spaceBetween: 20,
-              },
-              1024: {
-                slidesPerView: tilesPerViewDesktop,
-                slidesOffsetBefore: 0,
-                slidesOffsetAfter: 0,
-                spaceBetween: 20,
-              },
+              768: breakpoints.tablet,
+              1024: breakpoints.desktop,
             }}
           >
             {swiper &&
@@ -89,9 +102,12 @@ export const TilesSlider = forwardRef(
           </Swiper>
 
           {!swiper && (
-            <div className="flex min-h-[25rem] items-center justify-center">
-              <Spinner width="32" />
-            </div>
+            <SwiperSkeleton breakpoints={breakpoints}>
+              <div className="animate-pulse">
+                <div className={clsx('bg-neutralLightest', aspectRatio)} />
+                <div className="mt-4 w-[150px] h-[29px] md:h-8 bg-neutralLightest" />
+              </div>
+            </SwiperSkeleton>
           )}
         </div>
 

@@ -6,7 +6,7 @@ import type {
 } from '@shopify/hydrogen/storefront-api-types';
 
 import {PREDICTIVE_SEARCH_QUERY} from '~/data/graphql/storefront/search';
-import {getSiteSettings} from '~/lib/utils';
+import {getSiteSettings} from '~/lib/server-utils/settings.server';
 
 type PredictiveCollection = PredictiveSearchResult['collections'][number];
 type PredicticeSearchResultItemImage = PredictiveCollection['image'];
@@ -35,7 +35,7 @@ export async function loader({request, params, context}: LoaderFunctionArgs) {
     request,
     context,
   });
-  return search;
+  return Response.json(search);
 }
 
 async function fetchPredictiveSearchResults({

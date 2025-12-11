@@ -1,7 +1,8 @@
-import {Image as HydrogenImage} from '@shopify/hydrogen-react';
-import {forwardRef} from 'react';
+import { Image as HydrogenImage } from "@shopify/hydrogen-react";
+import clsx from "clsx";
+import { forwardRef } from "react";
 
-import type {AspectRatio} from '~/lib/types';
+import type { AspectRatio } from "~/lib/types";
 
 type ImageProps = React.ComponentProps<typeof HydrogenImage> & {
   aspectRatio?: AspectRatio | undefined;
@@ -28,21 +29,26 @@ export const Image = forwardRef(
         data={data}
         aspectRatio={aspectRatio}
         width={width}
-        className={`object-cover ${
-          withBackgroundColor ? 'bg-neutralLightest' : 'bg-transparent'
-        } ${className}`}
+        className={clsx(
+          "object-cover",
+          withBackgroundColor ? "bg-neutralLightest" : "bg-transparent",
+          className,
+        )}
         {...props}
       />
     ) : (
       <div
         ref={ref}
-        className={`relative overflow-hidden bg-neutralLightest ${className}`}
-        style={{aspectRatio, width}}
+        className={clsx(
+          "relative overflow-hidden bg-neutralLightest",
+          className,
+        )}
+        style={{ aspectRatio, width }}
       >
-        {withLoadingAnimation && <div className="loading-shimmer opacity-60" />}
+        {withLoadingAnimation && <div className="loading-shimmer" />}
       </div>
     );
   },
 );
 
-Image.displayName = 'Image';
+Image.displayName = "Image";

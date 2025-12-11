@@ -1,4 +1,4 @@
-import {useMemo} from 'react';
+import {memo, useMemo} from 'react';
 import type {Metafield, Product} from '@shopify/hydrogen/storefront-api-types';
 
 import {ProductMetafieldsAccordion} from './ProductMetafieldsAccordion';
@@ -9,13 +9,13 @@ const EXAMPLE_METAFIELDS_MAP: Record<string, Metafield> = {
     id: 'gid://shopify/Metafield/1234567890',
     key: 'sizing',
     value:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\n*Example details. Data sourced from product metafields. See code for customization.*',
+      '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.<br/><br/><em>Example details. Data sourced from product metafields. See code for customization.</em></p>',
   } as Metafield,
   'custom.care': {
     namespace: 'custom',
     id: 'gid://shopify/Metafield/0987654321',
     key: 'care',
-    value: `* Lorem ipsum dolor sit amet\n* Consectetur adipiscing elit\n* Sed do eiusmod tempor\n\n*Example details. Data sourced from product metafields. See code for customization.*`,
+    value: `<ul><li>Lorem ipsum dolor sit amet</li><li>Consectetur adipiscing elit</li><li>Sed do eiusmod tempor</li></ul><p><em>Example details. Data sourced from product metafields. See code for customization.</em></p>`,
   } as Metafield,
 };
 
@@ -25,7 +25,7 @@ interface ProductMetafieldsProps {
   product: Product;
 }
 
-export function ProductMetafields({product}: ProductMetafieldsProps) {
+export const ProductMetafields = memo(({product}: ProductMetafieldsProps) => {
   const metafields = useMemo(() => {
     // if (!product.metafields) return null;
     // const metafieldsMap = product.metafields;
@@ -48,6 +48,6 @@ export function ProductMetafields({product}: ProductMetafieldsProps) {
       })}
     </ul>
   ) : null;
-}
+});
 
 ProductMetafields.displayName = 'ProductMetafields';

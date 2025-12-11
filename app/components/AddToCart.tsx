@@ -2,6 +2,7 @@ import type {
   AttributeInput,
   SellingPlan,
 } from '@shopify/hydrogen/storefront-api-types';
+import clsx from 'clsx';
 import {useEffect, useMemo} from 'react';
 
 import {LoadingDots} from '~/components/Animations';
@@ -49,6 +50,7 @@ export function AddToCart({
   const {
     buttonText,
     cartIsUpdating,
+    failed,
     isAdded,
     isAdding,
     isNotifyMe,
@@ -77,10 +79,16 @@ export function AddToCart({
     (!!isSoldOut && !isNotifyMe) || !!disabled || isAdding || cartIsUpdating;
 
   return (
-    <div className={`${containerClassName}`}>
+    <div className={clsx(containerClassName)}>
       <button
         aria-label={buttonText}
-        className={`${isNotifyMeClass} relative w-full ${isUpdatingClass} ${className}`}
+        className={clsx(
+          isNotifyMeClass,
+          'relative w-full',
+          isUpdatingClass,
+          className,
+          failed && 'bg-red-500',
+        )}
         disabled={isButtonDisabled}
         onClick={() => {
           if (isNotifyMe) {
@@ -93,7 +101,7 @@ export function AddToCart({
         }}
         type="button"
       >
-        <span className={`${isAdding || isAdded ? 'invisible' : 'visible'}`}>
+        <span className={clsx(isAdding || isAdded ? 'invisible' : 'visible')}>
           {buttonText}
           {!isSoldOut && (
             <span className="font-normal">

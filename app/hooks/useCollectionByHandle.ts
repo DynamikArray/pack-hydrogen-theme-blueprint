@@ -31,12 +31,10 @@ export function useCollectionByHandle(
   fetchOnMount = true,
 ): Collection | null {
   const {pathPrefix} = useLocale();
-  const fetcher = useFetcher<{collection: Collection}>({
-    key: `collection-by-handle:${handle}:${pathPrefix}`,
-  });
+  const fetcher = useFetcher<{collection: Collection}>();
 
   useEffect(() => {
-    if (!fetchOnMount || !handle || fetcher.data?.collection) return;
+    if (!fetchOnMount || !handle) return;
     const paramsAsStrings = Object.entries({...params}).reduce(
       (acc: Record<string, string>, [key, value]) => {
         acc[key] = String(value);

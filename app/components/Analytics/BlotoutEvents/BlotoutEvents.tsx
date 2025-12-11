@@ -1,4 +1,5 @@
 import {useEffect, useMemo, useState} from 'react';
+import type {Customer} from '@shopify/hydrogen/customer-account-api-types';
 
 import {useLoadScript} from '~/hooks';
 
@@ -26,7 +27,7 @@ export function BlotoutEvents({
   blotoutEdgeUrl: string;
   register: (key: string) => {ready: () => void};
   subscribe: (arg0: any, arg1: any) => void;
-  customer?: Record<string, any> | null;
+  customer?: Customer | null;
   debug?: boolean;
 }) {
   let ready: (() => void) | undefined = undefined;
@@ -55,100 +56,6 @@ export function BlotoutEvents({
       innerHTML: `window.edgetag=window.edgetag||function(){(edgetag.stubs=edgetag.stubs||[]).push(arguments)};`,
     },
     'head',
-  );
-
-  useLoadScript(
-    {
-      id: 'onetrust-consent-script',
-      innerHTML: `var marketingOrTargetingChannels = [
-      'facebook',
-      'tiktok',
-      'pinterest',
-      'googleAds',
-      'googleAdsClicks',
-      'segment',
-      'iterable',
-      'snapchat',
-      'tradeDesk',
-      'twitter',
-    ];
-    var analyticsChannels = ['googleAnalytics4'];
-    var getConsent = () => {
-      const name = 'OptanonConsent';
-      const cookie = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-      if (cookie && cookie.length > 2) {
-        const match = decodeURIComponent(cookie[2]).match(
-          new RegExp('&groups=([^&]+)')
-        );
-        if (match) return match[1];
-      }
-    };
-    var reduceChannelsToObj = (channels, value) => {
-      return channels.reduce((obj, channel) => {
-        obj[channel] = value;
-        return obj;
-      }, {});
-    };
-    var isCategoryEnabled = (consent, regrex) => {
-      /*
-        return
-            -1 -> group is not found
-            0 -> group is found but consent is false
-            1 -> group is found and consent is true
-      */
-      let isEnabled = -1;
-      OneTrust.GetDomainData()?.Groups?.forEach((group) => {
-        if (group.GroupName?.match(regrex)) {
-          if (consent[group.OptanonGroupId]) {
-            isEnabled = 1; // Opt-in by user
-          } else {
-            isEnabled = ~isEnabled ? isEnabled : 0; // Opt-out by user
-          }
-        }
-      });
-      return isEnabled;
-    };
-    var isMarketingOrTargetingEnabled = (consent) => {
-      const isTargetingEnabled = isCategoryEnabled(consent, /targeting/i);
-      const isMarketingEnabled = isCategoryEnabled(consent, /marketing/i);
-      if (isMarketingEnabled === 1 || isTargetingEnabled === 1) {
-        return true;
-      }
-      return isTargetingEnabled & isMarketingEnabled;
-    };
-    window.addEventListener('load', () => {
-      if (typeof window.OneTrust !== 'undefined') {
-        OneTrust.OnConsentChanged(function () {
-          const consentString = getConsent();
-          if (!consentString) {
-            return;
-          }
-          const consent = consentString.split(',').reduce((obj, group) => {
-            const [groupId, groupConsentValue] = group.split(':');
-            obj[groupId] = parseInt(groupConsentValue);
-            return obj;
-          }, {});
-          const isAnalyticsEnabled = isCategoryEnabled(consent, /analytics/i);
-          let edgetagConsent = { all: true };
-          if (!isMarketingOrTargetingEnabled(consent)) {
-            edgetagConsent = {
-              ...edgetagConsent,
-              ...reduceChannelsToObj(marketingOrTargetingChannels, false),
-            };
-          }
-          if (!isAnalyticsEnabled) {
-            edgetagConsent = {
-              ...edgetagConsent,
-              ...reduceChannelsToObj(analyticsChannels, false),
-            };
-          }
-          edgetag('consent', edgetagConsent);
-        });
-      }
-    });`,
-    },
-    'body',
-    !!edgeTagInitialized,
   );
 
   useEffect(() => {
@@ -189,7 +96,7 @@ export function BlotoutEvents({
       addToCartEvent({...data, customer, debug});
     });
     subscribe(AnalyticsEvent.CUSTOMER, (data: Data) => {
-      customerEvent({...data, debug});
+      customerEvent({...data, customer, debug});
     });
     subscribe(AnalyticsEvent.CUSTOMER_REGISTERED, (data: Data) => {
       customerRegisterEvent({...data, debug});

@@ -1,11 +1,10 @@
 import {useLocation, useNavigate} from '@remix-run/react';
-import {useCart} from '@shopify/hydrogen-react';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 
 import type {BYOPAddToCartProps} from './BuildYourOwnPack.types';
 
 import {LoadingDots} from '~/components/Animations/LoadingDots';
-import {useMenu} from '~/hooks';
+import {useCart, useMenu} from '~/hooks';
 
 export function BYOPAddToCart({
   addToCartUnlocked,

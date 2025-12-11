@@ -1,24 +1,19 @@
-import {PreviewProvider} from '@pack/react';
-import {Links, Meta, Scripts, ScrollRestoration} from '@remix-run/react';
-import {CartProvider, ShopifyProvider} from '@shopify/hydrogen-react';
-import {useMemo} from 'react';
-import type {ReactNode} from 'react';
+import { PreviewProvider } from "@pack/react";
+import { Links, Meta, Scripts, ScrollRestoration } from "@remix-run/react";
+import { useMemo, ReactNode } from "react";
 
-import {Favicon} from './Favicon';
-import {Scripts as RootScripts} from './Scripts';
+import { Favicon } from "./Favicon";
+import { Scripts as RootScripts } from "./Scripts";
 
-import {Layout} from '~/components/Layout';
-import {ContextsProvider} from '~/contexts';
-import {CART_FRAGMENT} from '~/data/graphql/storefront/cart';
-import {useLocale, useRootLoaderData} from '~/hooks';
-import {DEFAULT_STOREFRONT_API_VERSION} from '~/lib/constants';
-
+import { Layout } from "~/components/Layout";
+import { ContextsProvider } from "~/contexts";
+import { useLocale, useRootLoaderData } from "~/hooks";
 interface DocumentProps {
   children: ReactNode;
   title?: string;
 }
 
-export function Document({children, title}: DocumentProps) {
+export function Document({ children, title }: DocumentProps) {
   const {
     customizerMeta,
     ENV,
@@ -29,7 +24,7 @@ export function Document({children, title}: DocumentProps) {
   } = useRootLoaderData();
   const locale = useLocale();
   const keywords =
-    siteSettings?.data?.siteSettings?.seo?.keywords?.join(', ') ?? '';
+    siteSettings?.data?.siteSettings?.seo?.keywords?.join(", ") ?? "";
 
   const canonicalUrl = useMemo(() => {
     if (!url) return undefined;
@@ -37,7 +32,7 @@ export function Document({children, title}: DocumentProps) {
       const primaryUrl = new URL(ENV.PRIMARY_DOMAIN);
       const routeUrl = new URL(url);
       return `${primaryUrl.origin}${
-        routeUrl.pathname === '/' ? '' : routeUrl.pathname
+        routeUrl.pathname === "/" ? "" : routeUrl.pathname
       }`;
     } catch (error) {
       return undefined;
@@ -64,33 +59,21 @@ export function Document({children, title}: DocumentProps) {
       </head>
 
       <body>
-        <ShopifyProvider
-          storeDomain={`https://${ENV.PUBLIC_STORE_DOMAIN}`}
-          storefrontToken={ENV.PUBLIC_STOREFRONT_API_TOKEN}
-          storefrontApiVersion={
-            ENV.PUBLIC_STOREFRONT_API_VERSION || DEFAULT_STOREFRONT_API_VERSION
-          }
-          countryIsoCode={locale.country}
-          languageIsoCode={locale.language}
-        >
-          <CartProvider cartFragment={CART_FRAGMENT}>
-            <ContextsProvider>
-              <PreviewProvider
-                customizerMeta={customizerMeta}
-                isPreviewModeEnabled={isPreviewModeEnabled}
-                siteSettings={siteSettings}
-              >
-                <Layout key={`${locale.language}-${locale.country}`}>
-                  {children}
-                </Layout>
-              </PreviewProvider>
-            </ContextsProvider>
-          </CartProvider>
-        </ShopifyProvider>
+        <ContextsProvider>
+          <PreviewProvider
+            customizerMeta={customizerMeta}
+            isPreviewModeEnabled={isPreviewModeEnabled}
+            siteSettings={siteSettings}
+          >
+            <Layout key={`${locale.language}-${locale.country}`}>
+              {children}
+            </Layout>
+          </PreviewProvider>
+        </ContextsProvider>
         <RootScripts />
         <ScrollRestoration
           getKey={(location) => {
-            const isPdp = location.pathname.startsWith('/products/');
+            const isPdp = location.pathname.startsWith("/products/");
             return isPdp ? location.key : location.pathname;
           }}
         />
@@ -100,4 +83,4 @@ export function Document({children, title}: DocumentProps) {
   );
 }
 
-Document.displayName = 'Document';
+Document.displayName = "Document";

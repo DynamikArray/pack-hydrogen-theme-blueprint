@@ -1,36 +1,15 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
-import type {MailingAddress} from '@shopify/hydrogen/storefront-api-types';
+import clsx from 'clsx';
 
 import {LoadingDots} from '~/components/Animations';
 import {Select} from '~/components/Select';
 import {useCountriesList} from '~/hooks';
-import type {Status} from '~/lib/types';
 
-interface InitialAddressElements extends HTMLFormControlsCollection {
-  firstName: HTMLInputElement;
-  lastName: HTMLInputElement;
-  company: HTMLInputElement;
-  address1: HTMLInputElement;
-  address2: HTMLInputElement;
-  city: HTMLInputElement;
-  zip: HTMLInputElement;
-  phone: HTMLInputElement;
-}
-
-interface InitialAddressForm extends HTMLFormElement {
-  elements: InitialAddressElements;
-}
-
-interface AddressFormProps {
-  buttonText: string;
-  closeForm: () => void;
-  defaultAddress?: MailingAddress | null;
-  errors: string[];
-  initialAddress?: MailingAddress | null;
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-  status: Status;
-  title: string;
-}
+import type {
+  InitialAddressForm,
+  AddressFormProps,
+  ProvinceType,
+} from './Addresses.types';
 
 export function AddressForm({
   buttonText,
@@ -47,26 +26,43 @@ export function AddressForm({
     firstCountries: ['United States', 'Canada', 'United Kingdom', 'Australia'],
   });
 
-  const [province, setProvince] = useState(initialAddress?.province || '');
-  const [country, setCountry] = useState(initialAddress?.country || '');
+  const [province, setProvince] = useState(initialAddress?.zoneCode || '');
+  const [country, setCountry] = useState(initialAddress?.territoryCode || '');
   const [isDefault, setIsDefault] = useState(false);
 
   const countries = useMemo(() => {
-    return countryNames.map((name) => ({label: name, value: name}));
+    return countryNamesData.map((countryData) => ({
+      label: countryData.countryName,
+      value: countryData.countryShortCode,
+    }));
   }, [countryNames]);
 
+  const countriesByShortCode = useMemo(() => {
+    return countryNamesData.reduce((acc, countryData) => {
+      acc[countryData.countryShortCode] = countryData;
+      return acc;
+    }, {});
+  }, [countryNamesData]);
+
   const provinces = useMemo(() => {
-    return countryNamesData
-      ?.find(({countryName}) => {
-        return countryName === country;
-      })
-      ?.regions?.map(({name}: {name: string}) => ({label: name, value: name}));
-  }, [country, countryNamesData?.length]);
+    const countryData = countriesByShortCode[country];
+    return countryData?.regions?.map((regionData: ProvinceType) => ({
+      label: regionData.name,
+      value: regionData.shortCode,
+    })) as {label: string; value: string}[];
+  }, [country, countriesByShortCode]);
+
+  const provincesByShortCode = useMemo(() => {
+    return provinces?.reduce((acc: Record<string, string>, provinceData) => {
+      acc[provinceData.value] = provinceData.label;
+      return acc;
+    }, {});
+  }, [provinces]);
 
   useEffect(() => {
     if (!formRef.current) return;
     if (!initialAddress) {
-      setCountry('United States');
+      setCountry('US');
       return;
     }
     formRef.current.elements.firstName.value = initialAddress.firstName || '';
@@ -76,9 +72,10 @@ export function AddressForm({
     formRef.current.elements.address2.value = initialAddress.address2 || '';
     formRef.current.elements.city.value = initialAddress.city || '';
     formRef.current.elements.zip.value = initialAddress.zip || '';
-    formRef.current.elements.phone.value = initialAddress.phone || '';
-    setProvince(initialAddress.province || '');
-    setCountry(initialAddress.country || '');
+    formRef.current.elements.phoneNumber.value =
+      initialAddress.phoneNumber || '';
+    setProvince(initialAddress.zoneCode || '');
+    setCountry(initialAddress.territoryCode || '');
     setIsDefault(
       defaultAddress?.id?.split('?')[0] === initialAddress.id?.split('?')[0],
     );
@@ -178,13 +175,13 @@ export function AddressForm({
           <p className="input-label">State/Province</p>
 
           <Select
-            name="province"
-            onSelect={({value}) => setProvince(value)}
+            name="zoneCode"
+            onSelect={({value}) => setProvince(value || '')}
             options={provinces || []}
             placeholder="Select State/Province"
             selectedClass="text-base"
             selectedOption={{
-              label: province,
+              label: provincesByShortCode?.[province] || '',
               value: province,
             }}
           />
@@ -206,13 +203,15 @@ export function AddressForm({
           <p className="input-label">Country</p>
 
           <Select
-            name="country"
-            onSelect={({value}) => setCountry(value)}
+            name="territoryCode"
+            onSelect={({value}) => {
+              setCountry(value || '');
+            }}
             options={countries}
             placeholder="Select Country"
             selectedClass="text-base"
             selectedOption={{
-              label: country,
+              label: countriesByShortCode[country]?.countryName || '',
               value: country,
             }}
           />
@@ -223,7 +222,7 @@ export function AddressForm({
           <input
             className="input-text"
             id="phone"
-            name="phone"
+            name="phoneNumber"
             placeholder="Phone"
             type="tel"
           />
@@ -256,12 +255,13 @@ export function AddressForm({
         <div className="col-span-2 mt-4 flex justify-center">
           <button
             aria-label={initialAddress ? 'Update Address' : 'Add Address'}
-            className={`btn-primary w-full min-w-48 md:w-auto ${
-              status.started ? 'cursor-default' : ''
-            }`}
+            className={clsx(
+              'btn-primary w-full min-w-48 md:w-auto',
+              status.started && 'cursor-default',
+            )}
             type="submit"
           >
-            <span className={`${status.started ? 'invisible' : 'visible'}`}>
+            <span className={clsx(status.started ? 'invisible' : 'visible')}>
               {buttonText}
             </span>
 

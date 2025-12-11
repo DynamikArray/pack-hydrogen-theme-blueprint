@@ -13,9 +13,9 @@ import {Svg} from '~/components/Svg';
 import {PRODUCT_IMAGE_ASPECT_RATIO} from '~/lib/constants';
 
 export const CartLine = memo(({closeCart, line}: CartLineProps) => {
-  const {discountAllocations, quantity, merchandise} = line;
+  const {discountAllocations, merchandise} = line;
 
-  const {handleDecrement, handleIncrement, handleRemove, isUpdatingLine} =
+  const {handleDecrement, handleIncrement, handleRemove, optimisticQuantity} =
     useCartLine({line});
 
   const {price, compareAtPrice} = useCartLinePrices({line});
@@ -36,7 +36,7 @@ export const CartLine = memo(({closeCart, line}: CartLineProps) => {
     return `/products/${merchandise.product.handle}?${searchParams}`;
   }, [line.id, merchandise.product.handle, merchandise.selectedOptions]);
 
-  return (
+  return optimisticQuantity > 0 ? (
     <div className="relative grid grid-cols-[auto_1fr] items-center gap-3 p-4 ">
       <Link
         aria-label={`View ${merchandise.product.title}`}
@@ -91,7 +91,8 @@ export const CartLine = memo(({closeCart, line}: CartLineProps) => {
             {line.attributes
               .filter(
                 (attr) =>
-                  !/^_item_\d+_title$/.test(attr.key) && // exclude Shopify bundle attrs
+                  !/^_item_\d+_/.test(attr.key) && // exclude all Shopify bundle attrs
+                  !/^product\s+\d+/.test(attr.key) && // exclude BYOB bundle product count attrs (product 0, product 1, etc)
                   !attr.key.startsWith('_'), // exclude hidden/system attrs
               )
               .map((attr) => (
@@ -119,9 +120,8 @@ export const CartLine = memo(({closeCart, line}: CartLineProps) => {
           <QuantitySelector
             handleDecrement={handleDecrement}
             handleIncrement={handleIncrement}
-            isUpdating={isUpdatingLine}
             productTitle={merchandise.product.title}
-            quantity={quantity}
+            quantity={optimisticQuantity}
           />
 
           <div className="flex flex-1 flex-col items-end pb-1">
@@ -160,7 +160,7 @@ export const CartLine = memo(({closeCart, line}: CartLineProps) => {
         </div>
       </div>
     </div>
-  );
+  ) : null;
 });
 
 CartLine.displayName = 'CartLine';

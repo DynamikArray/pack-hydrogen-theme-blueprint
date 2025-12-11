@@ -1,4 +1,3 @@
-import {data as dataWithOptions} from '@shopify/remix-oxygen';
 import type {LoaderFunctionArgs} from '@shopify/remix-oxygen';
 
 import {ADMIN_PRODUCT_ITEM_QUERY} from '~/data/graphql/admin/product';
@@ -13,7 +12,7 @@ export async function loader({request, context}: LoaderFunctionArgs) {
   const isPreviewModeEnabled = pack.isPreviewModeEnabled();
 
   if (!handle)
-    return dataWithOptions(
+    return Response.json(
       {product: null, errors: ['Missing `handle` parameter']},
       {status: 400},
     );
@@ -28,8 +27,11 @@ export async function loader({request, context}: LoaderFunctionArgs) {
     try {
       metafieldIdentifiers = JSON.parse(metafieldIdentifiersString);
     } catch (error) {
-      return dataWithOptions(
-        {metafields: null, errors: ['Invalid `metafieldQueries` parameter']},
+      return Response.json(
+        {
+          metafields: null,
+          errors: ['Invalid `metafieldIdentifiers` parameter'],
+        },
         {status: 400},
       );
     }
@@ -54,7 +56,7 @@ export async function loader({request, context}: LoaderFunctionArgs) {
       isDraftProduct,
       identifiers: metafieldIdentifiers,
     });
-    return {metafields};
+    return Response.json({metafields});
   }
 
   /* Product query by handle */
@@ -79,10 +81,9 @@ export async function loader({request, context}: LoaderFunctionArgs) {
         ADMIN_PRODUCT_ITEM_QUERY,
         {variables: {handle}, cache: admin.CacheShort()},
       );
-      if (!adminProduct) return;
-      product = normalizeAdminProduct(adminProduct);
+      if (adminProduct) product = normalizeAdminProduct(adminProduct);
     }
   }
 
-  return {product};
+  return Response.json({product});
 }

@@ -1,8 +1,7 @@
-import {useCart} from '@shopify/hydrogen-react';
 import {memo} from 'react';
 
 import {Svg} from '~/components/Svg';
-import {useMenu} from '~/hooks';
+import {useCart, useMenu} from '~/hooks';
 
 export const NavigationCart = memo(
   ({className = '', color}: {className?: string; color?: string}) => {

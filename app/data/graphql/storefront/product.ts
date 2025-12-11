@@ -31,7 +31,7 @@ export const OPTION_FRAGMENT = `#graphql
         }
       }
     }
-  } 
+  }
 `;
 
 export const VARIANT_FRAGMENT = `#graphql
@@ -85,6 +85,7 @@ export const PRODUCT_FRAGMENT = `#graphql
     title
     handle
     vendor
+    description
     descriptionHtml
     productType
     publishedAt
@@ -364,6 +365,21 @@ export const PRODUCT_ITEM_QUERY = `#graphql
     $language: LanguageCode
   ) @inContext(country: $country, language: $language) {
     product(handle: $handle) {
+      ... on Product {
+        ...ProductItemFragment
+      }
+    }
+  }
+  ${PRODUCT_ITEM_FRAGMENT}
+` as const;
+
+export const PRODUCT_ITEM_QUERY_BY_ID = `#graphql
+  query product(
+    $id: ID!
+    $country: CountryCode
+    $language: LanguageCode
+  ) @inContext(country: $country, language: $language) {
+    product(id: $id) {
       ... on Product {
         ...ProductItemFragment
       }

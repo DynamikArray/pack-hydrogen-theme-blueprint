@@ -20,12 +20,10 @@ export function useProductByHandle(
   fetchOnMount = true,
 ): Product | null {
   const {pathPrefix} = useLocale();
-  const fetcher = useFetcher<{product: Product}>({
-    key: `product-by-handle:${handle}:${pathPrefix}`,
-  });
+  const fetcher = useFetcher<{product: Product}>();
 
   useEffect(() => {
-    if (!fetchOnMount || !handle || fetcher.data?.product) return;
+    if (!fetchOnMount || !handle) return;
     const searchParams = new URLSearchParams({handle});
     fetcher.load(`${pathPrefix}/api/product?${searchParams}`);
   }, [fetchOnMount, handle]);

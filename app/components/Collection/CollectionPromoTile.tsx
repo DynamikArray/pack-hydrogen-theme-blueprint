@@ -1,4 +1,6 @@
+import {memo} from 'react';
 import {useInView} from 'react-intersection-observer';
+import clsx from 'clsx';
 
 import {getAspectRatioFromClass} from '~/lib/utils';
 import {Image} from '~/components/Image';
@@ -6,7 +8,7 @@ import {Link} from '~/components/Link';
 
 import type {CollectionPromoTileProps} from './Collection.types';
 
-export function CollectionPromoTile({tile}: CollectionPromoTileProps) {
+export const CollectionPromoTile = memo(({tile}: CollectionPromoTileProps) => {
   const {ref, inView} = useInView({
     rootMargin: '200px',
     triggerOnce: true,
@@ -28,7 +30,7 @@ export function CollectionPromoTile({tile}: CollectionPromoTileProps) {
       type={link?.type}
     >
       <div
-        className={`relative ${aspectRatio} overflow-hidden`}
+        className={clsx('relative overflow-hidden', aspectRatio)}
         style={{
           backgroundColor: media ? 'var(--neutral-lightest)' : bgColor,
         }}
@@ -38,7 +40,7 @@ export function CollectionPromoTile({tile}: CollectionPromoTileProps) {
             {hasVideo && (
               <video
                 autoPlay
-                className="absolute inset-0 size-full object-cover"
+                className="media-fill"
                 controls={false}
                 loop
                 muted
@@ -85,6 +87,6 @@ export function CollectionPromoTile({tile}: CollectionPromoTileProps) {
       </div>
     </Link>
   );
-}
+});
 
 CollectionPromoTile.displayName = 'CollectionPromoTile';

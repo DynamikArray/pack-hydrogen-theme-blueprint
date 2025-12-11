@@ -1,27 +1,42 @@
-import {RenderSections} from '@pack/react';
-import {useLoaderData} from '@remix-run/react';
-import {Analytics, AnalyticsPageType, getSeoMeta} from '@shopify/hydrogen';
-import type {ShopifyAnalyticsProduct} from '@shopify/hydrogen';
-import {ProductProvider} from '@shopify/hydrogen-react';
-import type {LoaderFunctionArgs, MetaArgs} from '@shopify/remix-oxygen';
-import {BYOP_PRODUCT_HANDLE} from 'modules/brilliant/BuildYourOwnPack/BuildYourPackConfig';
-import type {BundleConfig} from 'modules/brilliant/Bundle/BundleConfig.types';
-import {Product} from 'modules/brilliant/Product/Product';
-
-import {routeHeaders} from '~/data/cache';
-import {ADMIN_PRODUCT_QUERY} from '~/data/graphql/admin/product';
-import {PRODUCT_PAGE_QUERY} from '~/data/graphql/pack/product-page';
-import {PRODUCT_QUERY} from '~/data/graphql/storefront/product';
-import {useGlobal, useProductWithGrouping} from '~/hooks';
-import {getGrouping, getSelectedProductOptions} from '~/lib/products.server';
-import {seoPayload} from '~/lib/seo.server';
-import type {ProductWithInitialGrouping} from '~/lib/types';
+import { RenderSections } from "@pack/react";
+import { useLoaderData } from "@remix-run/react";
 import {
-  getProductGroupings,
-  getShop,
-  getSiteSettings,
-  normalizeAdminProduct,
-} from '~/lib/utils';
+  Analytics,
+  AnalyticsPageType,
+  getSeoMeta,
+  storefrontRedirect,
+} from "@shopify/hydrogen";
+import type { ShopifyAnalyticsProduct } from "@shopify/hydrogen";
+import { ProductProvider } from "@shopify/hydrogen-react";
+import type { LoaderFunctionArgs, MetaArgs } from "@shopify/remix-oxygen";
+import { BYOP_PRODUCT_HANDLE } from "modules/brilliant/BuildYourOwnPack/BuildYourPackConfig";
+import type {
+  BrilliantBundleOption,
+  BundleConfig,
+} from "modules/brilliant/Bundle/BundleConfig.types";
+import { Product } from "modules/brilliant/Product/Product";
+
+// import { Product } from "~/components/Product";
+import { routeHeaders } from "~/data/cache";
+import { ADMIN_PRODUCT_QUERY } from "~/data/graphql/admin/product";
+import { PRODUCT_PAGE_QUERY } from "~/data/graphql/pack/product-page";
+import { PRODUCT_QUERY } from "~/data/graphql/storefront/product";
+import { useGlobal, useProductWithGrouping } from "~/hooks";
+//import { getGrouping, getSelectedProductOptions } from "~/lib/products.server";
+import { checkForTrailingEncodedSpaces } from "~/lib/server-utils/app.server";
+import { getPage, getProductGroupings } from "~/lib/server-utils/pack.server";
+import {
+  getGrouping,
+  getSelectedProductOptions,
+} from "~/lib/server-utils/product.server";
+import { seoPayload } from "~/lib/server-utils/seo.server";
+import { getShop, getSiteSettings } from "~/lib/server-utils/settings.server";
+import type {
+  Page,
+  ProductWithInitialGrouping,
+  SelectedVariant,
+} from "~/lib/types";
+import { normalizeAdminProduct } from "~/lib/utils";
 
 export const headers = routeHeaders;
 
@@ -30,9 +45,15 @@ export const headers = routeHeaders;
  * constant under lib/constants/product.ts
  */
 
-export async function loader({params, context, request}: LoaderFunctionArgs) {
-  const {handle} = params;
-  const {admin, pack, storefront} = context;
+export async function loader({ params, context, request }: LoaderFunctionArgs) {
+  const { handle } = params;
+  const { admin, pack, storefront } = context;
+
+  if (!handle) throw new Response(null, { status: 404 });
+
+  // Check for trailing encoded spaces and redirect if needed
+  const urlRedirect = checkForTrailingEncodedSpaces(request);
+  if (urlRedirect) return urlRedirect;
 
   const storeDomain = storefront.getShopifyDomain();
   const isPreviewModeEnabled = pack.isPreviewModeEnabled();
@@ -43,15 +64,17 @@ export async function loader({params, context, request}: LoaderFunctionArgs) {
   });
 
   const [
-    pageData,
-    {product: storefrontProduct},
+    { productPage },
+    { product: storefrontProduct },
     productGroupings,
     shop,
     siteSettings,
   ] = await Promise.all([
-    context.pack.query(PRODUCT_PAGE_QUERY, {
-      variables: {handle},
-      cache: context.storefront.CacheLong(),
+    getPage({
+      context,
+      handle,
+      pageKey: "productPage",
+      query: PRODUCT_PAGE_QUERY,
     }),
     storefront.query(PRODUCT_QUERY, {
       variables: {
@@ -68,23 +91,26 @@ export async function loader({params, context, request}: LoaderFunctionArgs) {
   ]);
 
   let queriedProduct = storefrontProduct;
-  let productStatus = 'ACTIVE';
-
-  const productPage = pageData?.data?.productPage;
+  let productStatus = "ACTIVE";
 
   if (admin && isPreviewModeEnabled) {
     if (!queriedProduct) {
-      const {productByIdentifier: adminProduct} = await admin.query(
+      const { productByIdentifier: adminProduct } = await admin.query(
         ADMIN_PRODUCT_QUERY,
-        {variables: {handle}, cache: admin.CacheShort()},
+        { variables: { handle }, cache: admin.CacheShort() },
       );
-      if (!adminProduct) return;
-      queriedProduct = normalizeAdminProduct(adminProduct);
-      productStatus = adminProduct.status;
+      if (adminProduct) {
+        queriedProduct = normalizeAdminProduct(adminProduct);
+        productStatus = adminProduct.status;
+      }
     }
   }
 
-  if (!queriedProduct) throw new Response(null, {status: 404});
+  if (!queriedProduct) {
+    const redirect = await storefrontRedirect({ request, storefront });
+    if (redirect.status === 301) return redirect;
+    throw new Response(null, { status: 404 });
+  }
 
   let grouping = undefined;
   let groupingProducts = undefined;
@@ -115,11 +141,11 @@ export async function loader({params, context, request}: LoaderFunctionArgs) {
 
   const productAnalytics: ShopifyAnalyticsProduct = {
     productGid: product.id,
-    variantGid: selectedVariant?.id || '',
+    variantGid: selectedVariant?.id || "",
     name: product.title,
-    variantName: selectedVariant?.title || '',
+    variantName: selectedVariant?.title || "",
     brand: product.vendor,
-    price: selectedVariant?.price?.amount || '',
+    price: selectedVariant?.price?.amount || "",
   };
   const analytics = {
     pageType: AnalyticsPageType.product,
@@ -141,11 +167,11 @@ export async function loader({params, context, request}: LoaderFunctionArgs) {
   let bundleConfig: BundleConfig | null = null;
 
   const brilliantBundleIsEnabled =
-    queriedProduct.brilliantBundleEnabled?.value === 'true';
+    queriedProduct.brilliantBundleEnabled?.value === "true";
 
   if (brilliantBundleIsEnabled) {
     const label =
-      queriedProduct.brilliantBundleLabel?.value?.trim() || 'Option';
+      queriedProduct.brilliantBundleLabel?.value?.trim() || "Option";
 
     const requiredCount = queriedProduct.brilliantBundleRequiredCount?.value
       ? parseInt(queriedProduct.brilliantBundleRequiredCount.value, 10)
@@ -161,15 +187,15 @@ export async function loader({params, context, request}: LoaderFunctionArgs) {
       if (!node) continue;
 
       // node is a Metaobject as per your fragment
-      let optionLabel = '';
+      let optionLabel = "";
       let imageUrl: string | undefined;
       let imageAlt: string | null | undefined;
 
       for (const field of node.fields ?? []) {
-        if (field.key === 'title') {
-          optionLabel = field.value ?? '';
+        if (field.key === "title") {
+          optionLabel = field.value ?? "";
         }
-        if (field.key === 'image' && field.reference?.image) {
+        if (field.key === "image" && field.reference?.image) {
           imageUrl = field.reference.image.url;
           imageAlt = field.reference.image.altText;
         }
@@ -208,7 +234,7 @@ export async function loader({params, context, request}: LoaderFunctionArgs) {
   };
 }
 
-export const meta = ({matches}: MetaArgs<typeof loader>) => {
+export const meta = ({ matches }: MetaArgs<typeof loader>) => {
   return getSeoMeta(...matches.map((match) => (match.data as any).seo));
 };
 
@@ -218,8 +244,13 @@ export default function ProductRoute() {
     productPage,
     selectedVariant: initialSelectedVariant,
     bundleConfig,
-  } = useLoaderData<typeof loader>();
-  const {isCartReady} = useGlobal();
+  } = useLoaderData<{
+    product: ProductWithInitialGrouping;
+    productPage?: Page;
+    selectedVariant?: SelectedVariant;
+    bundleConfig?: BundleConfig;
+  }>();
+  const { isCartReady } = useGlobal();
   const product = useProductWithGrouping(initialProduct);
 
   return (
@@ -247,19 +278,19 @@ export default function ProductRoute() {
               {
                 id: product.id,
                 title: product.title,
-                price: initialSelectedVariant?.price.amount || '0',
+                price: initialSelectedVariant?.price.amount || "0",
                 vendor: product.vendor,
-                variantId: initialSelectedVariant?.id || '',
-                variantTitle: initialSelectedVariant?.title || '',
+                variantId: initialSelectedVariant?.id || "",
+                variantTitle: initialSelectedVariant?.title || "",
                 quantity: 1,
               },
             ],
           }}
-          customData={{product, selectedVariant: initialSelectedVariant}}
+          customData={{ product, selectedVariant: initialSelectedVariant }}
         />
       )}
     </ProductProvider>
   );
 }
 
-ProductRoute.displayName = 'ProductRoute';
+ProductRoute.displayName = "ProductRoute";

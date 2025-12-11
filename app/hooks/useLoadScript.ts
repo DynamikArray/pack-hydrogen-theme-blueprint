@@ -1,3 +1,4 @@
+import type {RefObject} from 'react';
 import {useState, useEffect} from 'react';
 
 const SCRIPTS_LOADED: Record<string, Promise<boolean>> = {};
@@ -7,7 +8,7 @@ export function loadScript(
       `data-${string}`,
       any
     >,
-  placement?: 'head' | 'body' | null,
+  placement?: 'head' | 'body' | RefObject<HTMLElement | null> | null,
 ): Promise<boolean> {
   const {id, innerHTML, src, type, onload, onerror, ...rest} = {
     ...attributes,
@@ -32,6 +33,37 @@ export function loadScript(
         script.setAttribute(key, additionalAttributes[key]);
       });
     }
+
+    // For inline scripts (innerHTML without src), resolve immediately after appending
+    // since they execute synchronously and don't fire onload
+    if (innerHTML && !src) {
+      script.onerror = (e): void => {
+        reject(false);
+        if (typeof onerror === 'function') {
+          onerror(e);
+        }
+      };
+
+      // checks if placement is react ref
+      if (
+        placement !== null &&
+        typeof placement === 'object' &&
+        'current' in placement
+      ) {
+        placement?.current?.appendChild(script);
+      } else if (placement === 'head') {
+        document.head.appendChild(script);
+      } else {
+        document.body.appendChild(script);
+      }
+
+      // Resolve immediately for inline scripts
+      // Use setTimeout to ensure script is in DOM and executed
+      setTimeout(() => resolve(true), 0);
+      return;
+    }
+
+    // For external scripts (with src), use onload/onerror
     script.onload = (e): void => {
       resolve(true);
       if (typeof onload === 'function') {
@@ -44,7 +76,15 @@ export function loadScript(
         onerror(e);
       }
     };
-    if (placement === 'head') {
+
+    // checks if placement is react ref
+    if (
+      placement !== null &&
+      typeof placement === 'object' &&
+      'current' in placement
+    ) {
+      placement?.current?.appendChild(script);
+    } else if (placement === 'head') {
       document.head.appendChild(script);
     } else {
       document.body.appendChild(script);
@@ -84,7 +124,7 @@ type LoadScriptParams = Parameters<typeof loadScript>;
 
 export function useLoadScript(
   attributes: LoadScriptParams[0], // any valid HTMLScriptElement attributes; id is required
-  placement: LoadScriptParams[1] = 'body', // 'head' | 'body'
+  placement: LoadScriptParams[1] = 'body', // 'head' | 'body' | RefObject<HTMLElement | null> | null
   ready = true, // boolean to determine if the script should be loaded
 ): ScriptState {
   const [status, setStatus] = useState<ScriptState>('loading');

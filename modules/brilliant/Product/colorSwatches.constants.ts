@@ -46,4 +46,6 @@ export const colorSwatches: ColorSwatchRecord = {
   'sky-blue-cyan': ['#56B7E6 ', '#009ACE'],
   'cyan-sky-blue': ['#009ACE', '#56B7E6 '],
   'red-gold': ['#dc2626', '#fbbf24'],
+  'sky-blue-white': ['#56B7E6 ', '#ffffff'],
+  'matte-red-gold': ['#dc2626', '#fbbf24'],
 };

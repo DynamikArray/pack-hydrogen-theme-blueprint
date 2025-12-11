@@ -1,29 +1,43 @@
 import {useMemo} from 'react';
 import {useLoaderData} from '@remix-run/react';
-import type {LoaderFunctionArgs, MetaArgs} from '@shopify/remix-oxygen';
 import {
   Analytics,
   AnalyticsPageType,
   getPaginationVariables,
   getSeoMeta,
+  storefrontRedirect,
 } from '@shopify/hydrogen';
 import {RenderSections} from '@pack/react';
-import type {ProductCollectionSortKeys} from '@shopify/hydrogen/storefront-api-types';
+import type {LoaderFunctionArgs, MetaArgs} from '@shopify/remix-oxygen';
+import type {
+  Collection as CollectionType,
+  ProductCollectionSortKeys,
+} from '@shopify/hydrogen/storefront-api-types';
 
 import {Collection} from '~/components/Collection';
 import {COLLECTION_QUERY} from '~/data/graphql/storefront/collection';
 import {COLLECTION_PAGE_QUERY} from '~/data/graphql/pack/collection-page';
-import {getFilters, getShop, getSiteSettings} from '~/lib/utils';
+import {getPage} from '~/lib/server-utils/pack.server';
+import {getShop, getSiteSettings} from '~/lib/server-utils/settings.server';
+import {getFilters} from '~/lib/server-utils/collection.server';
+import {seoPayload} from '~/lib/server-utils/seo.server';
+import {checkForTrailingEncodedSpaces} from '~/lib/server-utils/app.server';
 import {routeHeaders} from '~/data/cache';
-import {seoPayload} from '~/lib/seo.server';
 import {useGlobal} from '~/hooks';
+import type {Page} from '~/lib/types';
 import type {ActiveFilterValue} from '~/components/Collection/CollectionFilters/CollectionFilters.types';
 
 export const headers = routeHeaders;
 
 export async function loader({params, context, request}: LoaderFunctionArgs) {
   const {handle} = params;
-  const {pack, storefront} = context;
+  const {storefront} = context;
+
+  if (!handle) throw new Response(null, {status: 404});
+
+  // Check for trailing encoded spaces and redirect if needed
+  const urlRedirect = checkForTrailingEncodedSpaces(request);
+  if (urlRedirect) return urlRedirect;
 
   const searchParams = new URL(request.url).searchParams;
   const siteSettings = await getSiteSettings(context);
@@ -51,10 +65,12 @@ export async function loader({params, context, request}: LoaderFunctionArgs) {
     pageBy: resultsPerPage,
   });
 
-  const [pageData, {collection}, shop] = await Promise.all([
-    pack.query(COLLECTION_PAGE_QUERY, {
-      variables: {handle},
-      cache: storefront.CacheLong(),
+  const [{collectionPage}, {collection}, shop] = await Promise.all([
+    getPage({
+      context,
+      handle,
+      pageKey: 'collectionPage',
+      query: COLLECTION_PAGE_QUERY,
     }),
     storefront.query(COLLECTION_QUERY, {
       variables: {
@@ -71,9 +87,11 @@ export async function loader({params, context, request}: LoaderFunctionArgs) {
     getShop(context),
   ]);
 
-  const collectionPage = pageData.data?.collectionPage;
-
-  if (!collection) throw new Response(null, {status: 404});
+  if (!collection) {
+    const redirect = await storefrontRedirect({request, storefront});
+    if (redirect.status === 301) return redirect;
+    throw new Response(null, {status: 404});
+  }
 
   const analytics = {
     pageType: AnalyticsPageType.collection,
@@ -103,8 +121,11 @@ export const meta = ({matches}: MetaArgs<typeof loader>) => {
 };
 
 export default function CollectionRoute() {
-  const {activeFilterValues, collection, collectionPage} =
-    useLoaderData<typeof loader>();
+  const {activeFilterValues, collection, collectionPage} = useLoaderData<{
+    activeFilterValues: ActiveFilterValue[];
+    collection: CollectionType;
+    collectionPage?: Page;
+  }>();
   const {isCartReady} = useGlobal();
 
   // determines if default collection heading should be shown
@@ -126,7 +147,7 @@ export default function CollectionRoute() {
           activeFilterValues={activeFilterValues as ActiveFilterValue[]}
           collection={collection}
           showHeading={!hasVisibleHeroSection}
-          title={collectionPage.title}
+          title={collectionPage?.title}
         />
       </section>
 

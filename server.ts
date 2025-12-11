@@ -3,6 +3,7 @@
 import * as remixBuild from 'virtual:remix/server-build';
 import {
   createCartHandler,
+  createCustomerAccountClient,
   cartGetIdDefault,
   cartSetIdDefault,
   createStorefrontClient,
@@ -15,8 +16,11 @@ import {
 import {createPackClient, PackSession, handleRequest} from '@pack/hydrogen';
 
 import {AppSession} from '~/lib/session.server';
-import {getLocaleFromRequest, getOxygenEnv} from '~/lib/utils';
+import {getLocaleFromRequest} from '~/lib/server-utils/locale.server';
+import {getCookieDomain} from '~/lib/server-utils/app.server';
+import {getOxygenEnv} from '~/lib/server-utils/oxygen.server';
 import {createAdminClient, getAdminHeaders} from '~/lib/admin-api';
+import {CART_FRAGMENT} from '~/data/graphql/storefront/cart';
 import defaultThemeData from '~/config/default-theme-data.json';
 
 /**
@@ -63,6 +67,17 @@ export default {
       });
 
       /**
+       * Create a client for Customer Account API.
+       */
+      const customerAccount = createCustomerAccountClient({
+        waitUntil,
+        request,
+        session,
+        customerAccountId: env.PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID,
+        shopId: env.SHOP_ID,
+      });
+
+      /**
        * Create Admin API client.
        */
       let admin = undefined;
@@ -85,12 +100,12 @@ export default {
 
       /*
        * Create cart handler.
-       * Do not interact with if Hydrogen's useCart hook is being used.
        */
       const cart = createCartHandler({
         storefront,
         getCartId: cartGetIdDefault(request.headers),
-        setCartId: cartSetIdDefault(),
+        setCartId: cartSetIdDefault({domain: getCookieDomain(request.url)}),
+        cartQueryFragment: CART_FRAGMENT,
       });
 
       /**
@@ -127,6 +142,7 @@ export default {
             waitUntil,
             session,
             storefront,
+            customerAccount,
             admin,
             cart,
             env,

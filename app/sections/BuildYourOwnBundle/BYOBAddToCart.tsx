@@ -1,8 +1,8 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
-import {useCart} from '@shopify/hydrogen-react';
+import clsx from 'clsx';
 
 import {LoadingDots} from '~/components/Animations';
-import {useMenu} from '~/hooks';
+import {useCart, useMenu} from '~/hooks';
 
 import type {BYOBAddToCartProps} from './BuildYourOwnBundle.types';
 
@@ -84,7 +84,7 @@ export function BYOBAddToCart({
       onClick={handleAddToCart}
       type="button"
     >
-      <span className={`${isAdding || isAdded ? 'invisible' : 'visible'}`}>
+      <span className={clsx(isAdding || isAdded ? 'invisible' : 'visible')}>
         {`Add To Cart${total ? ` - ${total}` : ''}`}
       </span>
 

@@ -1,4 +1,3 @@
-import {data as dataWithOptions} from '@shopify/remix-oxygen';
 import type {LoaderFunctionArgs} from '@shopify/remix-oxygen';
 
 import {BLOG_PAGE_QUERY} from '~/data/graphql/pack/blog-page';
@@ -14,7 +13,7 @@ export async function loader({context, request}: LoaderFunctionArgs) {
   const limit = Number(searchParams.get('limit')) || 4;
 
   if (!handle)
-    return dataWithOptions(
+    return Response.json(
       {product: null, errors: ['Missing blog `handle` parameter']},
       {status: 400},
     );
@@ -26,13 +25,15 @@ export async function loader({context, request}: LoaderFunctionArgs) {
     blog: BlogPage | null;
     cursor: string | null;
   }): Promise<BlogPage> => {
-    const {data} = await context.pack.query(BLOG_PAGE_QUERY, {
+    const {pack, storefront} = context;
+    const {data} = await pack.query(BLOG_PAGE_QUERY, {
       variables: {
-        first: 250,
         handle,
         cursor,
+        country: storefront.i18n.country,
+        language: storefront.i18n.language,
       },
-      cache: context.storefront.CacheLong(),
+      cache: storefront.CacheLong(),
     });
     if (!data?.blog) throw new Response(null, {status: 404});
 
@@ -69,5 +70,5 @@ export async function loader({context, request}: LoaderFunctionArgs) {
     return articleA.firstPublishedAt > articleB.firstPublishedAt ? -1 : 1;
   });
 
-  return {articles: sortedArticles.slice(0, limit)};
+  return Response.json({articles: sortedArticles.slice(0, limit)});
 }

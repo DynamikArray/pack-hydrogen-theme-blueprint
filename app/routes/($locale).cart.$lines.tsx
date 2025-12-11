@@ -64,6 +64,6 @@ export async function loader({request, context, params}: LoaderFunctionArgs) {
   }
 }
 
-export default function CartLinesRoute() {
+export default function Component() {
   return null;
 }

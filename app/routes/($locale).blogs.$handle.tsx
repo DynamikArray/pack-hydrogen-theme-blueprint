@@ -1,18 +1,31 @@
 import {useLoaderData} from '@remix-run/react';
-import type {LoaderFunctionArgs, MetaArgs} from '@shopify/remix-oxygen';
-import {AnalyticsPageType, getSeoMeta} from '@shopify/hydrogen';
+import {
+  AnalyticsPageType,
+  getSeoMeta,
+  storefrontRedirect,
+} from '@shopify/hydrogen';
 import {RenderSections} from '@pack/react';
+import type {LoaderFunctionArgs, MetaArgs} from '@shopify/remix-oxygen';
 
 import {BLOG_PAGE_QUERY} from '~/data/graphql/pack/blog-page';
-import {getShop, getSiteSettings} from '~/lib/utils';
-import type {BlogPage} from '~/lib/types';
+import {getPage} from '~/lib/server-utils/pack.server';
+import {getShop, getSiteSettings} from '~/lib/server-utils/settings.server';
+import {seoPayload} from '~/lib/server-utils/seo.server';
+import {checkForTrailingEncodedSpaces} from '~/lib/server-utils/app.server';
 import {routeHeaders} from '~/data/cache';
-import {seoPayload} from '~/lib/seo.server';
+import type {BlogPage} from '~/lib/types';
 
 export const headers = routeHeaders;
 
 export async function loader({params, context, request}: LoaderFunctionArgs) {
   const {handle} = params;
+  const {storefront} = context;
+
+  if (!handle) throw new Response(null, {status: 404});
+
+  // Check for trailing encoded spaces and redirect if needed
+  const urlRedirect = checkForTrailingEncodedSpaces(request);
+  if (urlRedirect) return urlRedirect;
 
   // if the number of articles is in the several of hundreds, consider paginating the query
   const getBlogWithAllArticles = async ({
@@ -21,16 +34,18 @@ export async function loader({params, context, request}: LoaderFunctionArgs) {
   }: {
     blog: BlogPage | null;
     cursor: string | null;
-  }): Promise<BlogPage> => {
-    const {data} = await context.pack.query(BLOG_PAGE_QUERY, {
+  }): Promise<BlogPage | undefined> => {
+    const {pack, storefront} = context;
+    const {data} = await pack.query(BLOG_PAGE_QUERY, {
       variables: {
-        first: 250,
         handle,
-        cursor,
+        articlesCursor: cursor,
+        country: storefront.i18n.country,
+        language: storefront.i18n.language,
       },
-      cache: context.storefront.CacheLong(),
+      cache: storefront.CacheLong(),
     });
-    if (!data?.blog) throw new Response(null, {status: 404});
+    if (!data?.blog) return undefined;
 
     const queriedBlog = data.blog;
     const queriedBlogArticles = queriedBlog.articles;
@@ -54,7 +69,7 @@ export async function loader({params, context, request}: LoaderFunctionArgs) {
     return compiledBlog;
   };
 
-  const [blog, shop, siteSettings] = await Promise.all([
+  const [blogWithAllArticles, shop, siteSettings] = await Promise.all([
     getBlogWithAllArticles({
       blog: null,
       cursor: null,
@@ -63,7 +78,25 @@ export async function loader({params, context, request}: LoaderFunctionArgs) {
     getSiteSettings(context),
   ]);
 
-  if (!blog) throw new Response(null, {status: 404});
+  if (!blogWithAllArticles) {
+    const redirect = await storefrontRedirect({request, storefront});
+    if (redirect.status === 301) return redirect;
+    throw new Response(null, {status: 404});
+  }
+
+  let blog = blogWithAllArticles;
+  if (blogWithAllArticles.sections.pageInfo.hasNextPage) {
+    const {blog: blogWithAllSections} = await (getPage({
+      context,
+      handle,
+      pageKey: 'blog',
+      query: BLOG_PAGE_QUERY,
+    }) as Promise<{blog: BlogPage}>);
+    blog = {
+      ...blogWithAllArticles,
+      sections: blogWithAllSections.sections,
+    };
+  }
 
   const sortedArticles = blog.articles.nodes.sort((articleA, articleB) => {
     return articleA.firstPublishedAt > articleB.firstPublishedAt ? -1 : 1;
@@ -97,7 +130,7 @@ export const meta = ({matches}: MetaArgs<typeof loader>) => {
 };
 
 export default function BlogRoute() {
-  const {blog} = useLoaderData<typeof loader>();
+  const {blog} = useLoaderData<{blog: BlogPage}>();
 
   return (
     <div data-comp={BlogRoute.displayName}>

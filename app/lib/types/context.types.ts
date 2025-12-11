@@ -1,4 +1,4 @@
-import type {Customer} from '@shopify/hydrogen-react/storefront-api-types';
+import type {Cart} from '@shopify/hydrogen/storefront-api-types';
 
 import type {Settings} from '~/lib/types';
 
@@ -62,19 +62,45 @@ export interface PromobarContext {
 }
 
 /*
+ * CART CONTEXT PROVIDER -----------------------------------------------------
+ */
+
+export type CartStatus =
+  | 'uninitialized'
+  | 'creating'
+  | 'fetching'
+  | 'updating'
+  | 'idle';
+
+export type CartError = unknown;
+
+export interface CartState {
+  cart: Cart | null;
+  status: CartStatus;
+  error: CartError;
+}
+
+export interface CartActions {
+  setCart: (cart: Cart) => void;
+  setStatus: (status: CartState['status']) => void;
+  setError: (error: unknown) => void;
+}
+
+export interface CartContext {
+  state: CartState;
+  actions: CartActions;
+}
+
+/*
  * SETTINGS CONTEXT PROVIDER -----------------------------------------------------
  */
 
 export interface SettingsState {
   settings: Settings;
-  previewModeCustomer: Customer | null | undefined;
-  isPreviewModeEnabled: boolean;
   isTransparentNavPage: boolean;
 }
 
-export interface SettingsActions {
-  setPreviewModeCustomer: (customer: Customer | null) => void;
-}
+export interface SettingsActions {}
 
 export interface SettingsContext {
   state: SettingsState;

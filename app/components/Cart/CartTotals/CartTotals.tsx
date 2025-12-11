@@ -1,31 +1,36 @@
 import {memo, useMemo} from 'react';
-import {useCart, useMoney} from '@shopify/hydrogen-react';
-import type {CartWithActions} from '@shopify/hydrogen-react';
-import type {
-  Cart,
-  CartCodeDiscountAllocation,
-} from '@shopify/hydrogen/storefront-api-types';
+import {useMoney} from '@shopify/hydrogen-react';
+import clsx from 'clsx';
+import type {CartCodeDiscountAllocation} from '@shopify/hydrogen/storefront-api-types';
 
+import {Link} from '~/components/Link';
 import {prefixNonUsdDollar} from '~/hooks/product/useVariantPrices';
-import {useLocale} from '~/hooks';
+import {useCart, useCustomer, useLocale} from '~/hooks';
 
 import type {CartTotalsProps} from '../Cart.types';
-import {MultipassCheckoutButton} from '../MultipassCheckoutButton';
 
 import {CartTotalsDiscountItem} from './CartTotalsDiscountItem';
 
 export const CartTotals = memo(({settings}: CartTotalsProps) => {
   const {currency} = useLocale();
+  const customer = useCustomer();
   const {
     checkoutUrl = '',
     cost,
     discountAllocations = [],
     totalQuantity = 0,
-  } = useCart() as CartWithActions & {
-    discountAllocations: Cart['discountAllocations'];
-  };
+  } = useCart();
 
-  const parsedDiscountAllocations = useMemo((): Cart['discountAllocations'] => {
+  const authenticatedCheckoutUrl = useMemo(() => {
+    if (!checkoutUrl) return '';
+    const url = new URL(checkoutUrl);
+    if (customer) {
+      url.searchParams.set('logged_in', 'true');
+    }
+    return url.toString();
+  }, [checkoutUrl, !!customer]);
+
+  const parsedDiscountAllocations = useMemo(() => {
     const codes: string[] = [];
     return discountAllocations.reduce(
       (acc: CartCodeDiscountAllocation[], allocation: any) => {
@@ -86,9 +91,10 @@ export const CartTotals = memo(({settings}: CartTotalsProps) => {
 
   return (
     <div
-      className={`flex-col gap-4 border-t border-t-border p-4 ${
-        totalQuantity ? 'flex' : 'hidden'
-      }`}
+      className={clsx(
+        'flex-col gap-4 border-t border-t-border p-4',
+        totalQuantity ? 'flex' : 'hidden',
+      )}
     >
       <div className="flex flex-col gap-1">
         {isDiscounted && (
@@ -117,12 +123,9 @@ export const CartTotals = memo(({settings}: CartTotalsProps) => {
         {subtext && <p className="text-xs">{subtext}</p>}
       </div>
 
-      <MultipassCheckoutButton
-        className="btn-primary w-full"
-        checkoutUrl={checkoutUrl}
-      >
+      <Link className="btn-primary w-full" to={authenticatedCheckoutUrl}>
         {checkoutText}
-      </MultipassCheckoutButton>
+      </Link>
     </div>
   );
 });

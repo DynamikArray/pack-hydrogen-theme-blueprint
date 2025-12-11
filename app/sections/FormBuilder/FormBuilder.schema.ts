@@ -51,6 +51,17 @@ const inputField = (type) => ({
       label: 'Half Width',
       name: 'halfWidth',
       component: 'toggle',
+      description: 'Not applicable to viewports below 480px',
+      toggleLabels: {
+        true: 'On',
+        false: 'Off',
+      },
+    },
+    {
+      label: 'New Line if Half Width',
+      name: 'newLineIfHalfWidth',
+      component: 'toggle',
+      description: 'If half width, field will always start on a new line',
       toggleLabels: {
         true: 'On',
         false: 'Off',
@@ -138,6 +149,17 @@ const multiChoiceField = (type) => ({
       label: 'Half Width',
       name: 'halfWidth',
       component: 'toggle',
+      description: 'Not applicable to viewports below 480px',
+      toggleLabels: {
+        true: 'On',
+        false: 'Off',
+      },
+    },
+    {
+      label: 'New Line if Half Width',
+      name: 'newLineIfHalfWidth',
+      component: 'toggle',
+      description: 'If half width, field will always start on a new line',
       toggleLabels: {
         true: 'On',
         false: 'Off',
@@ -208,6 +230,17 @@ const countryField = {
       label: 'Half Width',
       name: 'halfWidth',
       component: 'toggle',
+      description: 'Not applicable to viewports below 480px',
+      toggleLabels: {
+        true: 'On',
+        false: 'Off',
+      },
+    },
+    {
+      label: 'New Line if Half Width',
+      name: 'newLineIfHalfWidth',
+      component: 'toggle',
+      description: 'If half width, field will always start on a new line',
       toggleLabels: {
         true: 'On',
         false: 'Off',
@@ -278,6 +311,17 @@ const checkboxField = {
       label: 'Half Width',
       name: 'halfWidth',
       component: 'toggle',
+      description: 'Not applicable to viewports below 480px',
+      toggleLabels: {
+        true: 'On',
+        false: 'Off',
+      },
+    },
+    {
+      label: 'New Line if Half Width',
+      name: 'newLineIfHalfWidth',
+      component: 'toggle',
+      description: 'If half width, field will always start on a new line',
       toggleLabels: {
         true: 'On',
         false: 'Off',
@@ -330,6 +374,17 @@ const fileField = {
       label: 'Half Width',
       name: 'halfWidth',
       component: 'toggle',
+      description: 'Not applicable to viewports below 480px',
+      toggleLabels: {
+        true: 'On',
+        false: 'Off',
+      },
+    },
+    {
+      label: 'New Line if Half Width',
+      name: 'newLineIfHalfWidth',
+      component: 'toggle',
+      description: 'If half width, field will always start on a new line',
       toggleLabels: {
         true: 'On',
         false: 'Off',
@@ -366,19 +421,22 @@ export const Schema = () => {
         templates: {
           checkbox: checkboxField,
           country: countryField,
-          date: inputField('Date'),
-          email: inputField('Email'),
+          date: inputField('Date') as Record<string, any>,
+          email: inputField('Email') as Record<string, any>,
           file: fileField,
           label: labelField,
-          multipleCheckbox: multiChoiceField('Multiple Checkbox'),
-          number: inputField('Number'),
-          phone: inputField('Phone'),
-          radio: multiChoiceField('Radio'),
-          select: multiChoiceField('Select'),
-          text: inputField('Text'),
-          textArea: inputField('Text Area'),
-          time: inputField('Time'),
-          url: inputField('Url'),
+          multipleCheckbox: multiChoiceField('Multiple Checkbox') as Record<
+            string,
+            any
+          >,
+          number: inputField('Number') as Record<string, any>,
+          phone: inputField('Phone') as Record<string, any>,
+          radio: multiChoiceField('Radio') as Record<string, any>,
+          select: multiChoiceField('Select') as Record<string, any>,
+          text: inputField('Text') as Record<string, any>,
+          textArea: inputField('Text Area') as Record<string, any>,
+          time: inputField('Time') as Record<string, any>,
+          url: inputField('Url') as Record<string, any>,
         },
       },
       {

@@ -379,7 +379,8 @@
             "subtext": "",
             "soldOutText": "Sold Out",
             "preorderText": "Preorder",
-            "addToCartText": "Add To Cart"
+            "addToCartText": "Add To Cart",
+            "failedText": "Failed To Add"
           },
           "backInStock": {
             "enabled": false,
@@ -450,61 +451,6 @@
         },
         "analytics": {
           "enabled": true
-        },
-        "not-found": {
-          "text": {
-            "color": "#FFFFFF",
-            "buttons": [
-              {
-                "link": {
-                  "url": "/",
-                  "text": "Continue Shopping"
-                },
-                "style": "btn-primary"
-              }
-            ],
-            "heading": "Page Not Found"
-          },
-          "image": {
-            "alt": "Rack of green t-shirts",
-            "imageMobile": {
-              "url": "https://cdn.shopify.com/s/files/1/0671/5074/1778/files/keagan-henman-xPJYL0l5Ii8-unsplash_20_281_29.jpg?v=1672349016"
-            },
-            "imageDesktop": {
-              "url": "https://cdn.shopify.com/s/files/1/0671/5074/1778/files/keagan-henman-xPJYL0l5Ii8-unsplash_20_281_29.jpg?v=1672349016"
-            },
-            "positionMobile": "object-center",
-            "positionDesktop": "md:object-center"
-          },
-          "content": {
-            "darkOverlay": false,
-            "maxWidthMobile": "max-w-[22.5rem]",
-            "positionMobile": "justify-center items-center",
-            "alignmentMobile": "text-center items-center",
-            "maxWidthDesktop": "md:max-w-[30rem] lg:max-w-[38rem]",
-            "positionDesktop": "md:justify-center md:items-center",
-            "alignmentDesktop": "md:text-center md:items-center"
-          },
-          "section": {
-            "mobile": {
-              "maxHeight": "",
-              "minHeight": "",
-              "heightType": "static",
-              "aspectRatio": "max-md:aspect-[3/1]",
-              "staticHeight": "max-md:h-[31.25rem]"
-            },
-            "bgColor": "#FFFFFF",
-            "desktop": {
-              "maxHeight": "",
-              "minHeight": "",
-              "heightType": "static",
-              "aspectRatio": "md:aspect-[4/1]",
-              "staticHeight": "md:h-[50rem]"
-            },
-            "fullBleed": true,
-            "fullWidth": true,
-            "aboveTheFold": true
-          }
         },
         "collection": {
           "sort": {
@@ -757,7 +703,7 @@
                 "tileHeadingSize": "text-h4",
                 "buttonStyle": "btn-primary",
                 "fullWidth": false
-             },
+              },
               "_template": "tabbed-tiles-slider",
               "id": "default-tabbed-tiles-slider-data",
               "sectionName": "Homepage Tabbed Tiles Slider",
@@ -1034,7 +980,7 @@
                 "textAlign": "text-left items-start",
                 "tileHeadingSize": "text-h4",
                 "fullWidth": false
-             },
+              },
               "_template": "tiles-stack",
               "id": "default-tiles-stack-data",
               "sectionName": "Homepage Tiles Stack",
@@ -1146,7 +1092,7 @@
                 "secondaryButtonStyle": "btn-inverse-light",
                 "clickableImage": true,
                 "hideButtons": false
-             },
+              },
               "header": {
                 "alignment": "text-center items-center"
               },
@@ -1157,7 +1103,7 @@
                 "aspectRatio": "aspect-[3/4]",
                 "textColor": "#000000",
                 "fullWidth": false
-             },
+              },
               "_template": "image-tiles",
               "id": "default-image-tiles-data",
               "sectionName": "Homepage Image Tiles",

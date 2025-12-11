@@ -1,9 +1,9 @@
 import {useEffect, useRef, useState} from 'react';
 import {useLocation} from '@remix-run/react';
+import clsx from 'clsx';
 
 import {LoadingDots} from '~/components/Animations';
-import {useCustomer, useSettings} from '~/hooks';
-import {useCustomerUpdateProfile} from '~/lib/customer';
+import {useCustomer, useCustomerUpdateProfile, useSettings} from '~/hooks';
 
 interface ProfileFormElements extends HTMLFormControlsCollection {
   firstName: HTMLInputElement;
@@ -83,19 +83,20 @@ export function Profile() {
             placeholder="Email"
             required
             type="email"
-            value={customer?.email || ''}
+            value={customer?.emailAddress?.emailAddress || ''}
           />
         </label>
 
         <div className="col-span-2 flex justify-center">
           <button
             aria-label="Save to update profile"
-            className={`btn-primary mt-4 w-full min-w-40 md:w-auto ${
-              status.started ? 'cursor-default' : ''
-            }`}
+            className={clsx(
+              'btn-primary mt-4 w-full min-w-40 md:w-auto',
+              status.started && 'cursor-default',
+            )}
             type="submit"
           >
-            <span className={`${status.started ? 'invisible' : 'visible'}`}>
+            <span className={clsx(status.started ? 'invisible' : 'visible')}>
               {buttonText}
             </span>
 

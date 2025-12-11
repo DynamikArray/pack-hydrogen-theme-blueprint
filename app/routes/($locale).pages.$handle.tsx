@@ -1,34 +1,49 @@
 import {useLoaderData} from '@remix-run/react';
-import type {LoaderFunctionArgs, MetaArgs} from '@shopify/remix-oxygen';
-import {AnalyticsPageType, getSeoMeta} from '@shopify/hydrogen';
+import {
+  AnalyticsPageType,
+  getSeoMeta,
+  storefrontRedirect,
+} from '@shopify/hydrogen';
 import {RenderSections} from '@pack/react';
+import type {LoaderFunctionArgs, MetaArgs} from '@shopify/remix-oxygen';
 
-import {getShop, getSiteSettings} from '~/lib/utils';
+import {getPage} from '~/lib/server-utils/pack.server';
+import {getShop, getSiteSettings} from '~/lib/server-utils/settings.server';
+import {seoPayload} from '~/lib/server-utils/seo.server';
+import {getProductsMapForPage} from '~/lib/server-utils/product.server';
+import {checkForTrailingEncodedSpaces} from '~/lib/server-utils/app.server';
 import {PAGE_QUERY} from '~/data/graphql/pack/page';
 import {routeHeaders} from '~/data/cache';
-import {seoPayload} from '~/lib/seo.server';
-import {getProductsMapForPage} from '~/lib/products.server';
+import type {Page} from '~/lib/types';
 
 export const headers = routeHeaders;
 
 export async function loader({context, params, request}: LoaderFunctionArgs) {
   const {handle} = params;
+  const {storefront} = context;
 
-  const [{data}, shop, siteSettings] = await Promise.all([
-    context.pack.query(PAGE_QUERY, {
-      variables: {handle},
-      cache: context.storefront.CacheLong(),
-    }),
+  if (!handle) throw new Response(null, {status: 404});
+
+  // Check for trailing encoded spaces and redirect if needed
+  const urlRedirect = checkForTrailingEncodedSpaces(request);
+  if (urlRedirect) return urlRedirect;
+
+  const [{page}, shop, siteSettings] = await Promise.all([
+    getPage({context, handle, pageKey: 'page', query: PAGE_QUERY}),
     getShop(context),
     getSiteSettings(context),
   ]);
 
-  if (!data?.page) throw new Response(null, {status: 404});
+  if (!page) {
+    const redirect = await storefrontRedirect({request, storefront});
+    if (redirect.status === 301) return redirect;
+    throw new Response(null, {status: 404});
+  }
 
   /* Certain product sections require fetching products before page load */
   const productsMap = await getProductsMapForPage({
     context,
-    page: data.page,
+    page,
   });
 
   const isPolicy = handle?.includes('privacy') || handle?.includes('policy');
@@ -36,14 +51,14 @@ export async function loader({context, params, request}: LoaderFunctionArgs) {
     pageType: isPolicy ? AnalyticsPageType.policy : AnalyticsPageType.page,
   };
   const seo = seoPayload.page({
-    page: data.page,
+    page,
     shop,
     siteSettings,
   });
 
   return {
     analytics,
-    page: data.page,
+    page,
     productsMap,
     seo,
     url: request.url,
@@ -55,7 +70,7 @@ export const meta = ({matches}: MetaArgs<typeof loader>) => {
 };
 
 export default function PageRoute() {
-  const {page} = useLoaderData<typeof loader>();
+  const {page} = useLoaderData<{page: Page}>();
 
   return (
     <div data-comp={PageRoute.displayName}>

@@ -25,18 +25,10 @@ export function useProductRecommendations(
   fetchOnMount = true,
 ): Product[] | null {
   const {pathPrefix} = useLocale();
-  const fetcher = useFetcher<{productRecommendations: Product[]}>({
-    key: `product-recommendations:${productId}${intent}:${pathPrefix}`,
-  });
+  const fetcher = useFetcher<{productRecommendations: Product[]}>();
 
   useEffect(() => {
-    if (
-      !fetchOnMount ||
-      !productId ||
-      !intent ||
-      fetcher.data?.productRecommendations
-    )
-      return;
+    if (!fetchOnMount || !productId || !intent) return;
     const searchParams = new URLSearchParams({productId, intent});
     fetcher.load(`${pathPrefix}/api/recommendations?${searchParams}`);
   }, [fetchOnMount, productId, intent]);

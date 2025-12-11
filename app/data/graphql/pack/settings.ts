@@ -1,5 +1,5 @@
 export const SITE_SETTINGS_QUERY = `
-  query SiteSettings($version: Version) {
+  query SiteSettings($version: Version, $language: String, $country: String) @inContext(language: $language, country: $country) {
     siteSettings(version: $version) {
       id
       status
@@ -18,8 +18,8 @@ export const SITE_SETTINGS_QUERY = `
 ` as const;
 
 export const PRODUCT_GROUPINGS_QUERY = `
-  query ProductGroupings($first: Int!, $after: String) {
-    groups(first: $first, after: $after) {
+  query ProductGroupings($after: String) {
+    groups(first: 25, after: $after) {
       pageInfo {
         hasNextPage
         endCursor
@@ -54,6 +54,7 @@ export const SECTION_FRAGMENT = `
     title
     status
     data
+    styles
     publishedAt
     createdAt
     updatedAt

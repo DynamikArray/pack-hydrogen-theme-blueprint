@@ -10,15 +10,13 @@ import {
   getShopAnalytics,
   ShopifySalesChannel,
 } from '@shopify/hydrogen';
-import type {
-  Customer,
-  CustomerAccessToken,
-  Shop,
-} from '@shopify/hydrogen/storefront-api-types';
+import type {Customer} from '@shopify/hydrogen/customer-account-api-types';
+import type {Shop} from '@shopify/hydrogen/storefront-api-types';
 import {data as dataWithOptions, redirect} from '@shopify/remix-oxygen';
 import type {
   LinksFunction,
   LoaderFunctionArgs,
+  LoaderFunction,
   MetaArgs,
 } from '@shopify/remix-oxygen';
 
@@ -28,20 +26,21 @@ import {
   NotFound,
   ServerError,
 } from '~/components/Document';
-import {validateCustomerAccessToken} from '~/lib/customer';
-import {customerGetAction} from '~/lib/customer/servers/customer.server';
-import {getModalProduct} from '~/lib/products.server';
-import {seoPayload} from '~/lib/seo.server';
-import type {RootSiteSettings} from '~/lib/types';
+import {CUSTOMER_DETAILS_QUERY} from '~/data/graphql/customer-account/customer';
+import {redirectLinkToBuyerLocale} from '~/lib/server-utils/locale.server';
 import {
-  getCookieDomain,
-  getPublicEnvs,
   getProductGroupings,
+  setPackCookie,
+} from '~/lib/server-utils/pack.server';
+import {getModalProduct} from '~/lib/server-utils/product.server';
+import {seoPayload} from '~/lib/server-utils/seo.server';
+import {
+  getPublicEnvs,
   getShop,
   getSiteSettings,
-  redirectLinkToBuyerLocale,
-  setPackCookie,
-} from '~/lib/utils';
+} from '~/lib/server-utils/settings.server';
+import type {RootSiteSettings} from '~/lib/types';
+import {getCookieDomain} from '~/lib/utils';
 import {registerSections} from '~/sections';
 import {registerStorefrontSettings} from '~/settings';
 import styles from '~/styles/app.css?url';
@@ -52,7 +51,6 @@ registerStorefrontSettings();
 // This is important to avoid re-fetching root queries on sub-navigations
 export const shouldRevalidate: ShouldRevalidateFunction = ({
   formMethod,
-  defaultShouldRevalidate,
   currentUrl,
   nextUrl,
 }) => {
@@ -64,7 +62,7 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   if (currentUrl.toString() === nextUrl.toString()) {
     return true;
   }
-  return defaultShouldRevalidate;
+  return false;
 };
 
 export const links: LinksFunction = () => {
@@ -98,57 +96,57 @@ export const links: LinksFunction = () => {
     },
     {
       rel: 'stylesheet',
-      href:
-        'https://fonts.googleapis.com/css2?' +
-        //'family=Fjalla+One&' +
-        'family=Barlow+Condensed:wght@100;200;300;400;500;600;700&' +
-        'family=Merriweather+Sans:wght@300;400;500;600;700;800;900&' +
-        'display=swap',
+      href: 'https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Merriweather+Sans:wght@400;500;600;700&display=swap',
     },
   ];
 };
 
 export async function loader({context, request}: LoaderFunctionArgs) {
-  const {storefront, session, oxygen, pack, env} = context;
+  const {storefront, oxygen, pack, env, customerAccount, cart} = context;
   const isPreviewModeEnabled = pack.isPreviewModeEnabled() as boolean;
 
   /*
    * Redirect to the correct locale if the buyer's country is different from the
    * current locale. Occurs only once per cookie session
    */
-  if (storefront.i18n.country !== oxygen.buyer.country) {
-    const redirectedLink = await redirectLinkToBuyerLocale({context, request});
+  if (
+    storefront.i18n.country !== oxygen.buyer.country &&
+    !isPreviewModeEnabled
+  ) {
+    const redirectedLink = await redirectLinkToBuyerLocale({
+      context,
+      request,
+    });
     if (redirectedLink)
       return redirect(redirectedLink.to, redirectedLink.options);
   }
 
-  const [shop, siteSettings, customerAccessToken, ENV]: [
+  const [shop, siteSettings, ENV, isLoggedIn]: [
     Shop,
     RootSiteSettings,
-    CustomerAccessToken | undefined,
     Record<string, string>,
+    boolean,
   ] = await Promise.all([
     getShop(context),
     getSiteSettings(context),
-    session.get('customerAccessToken'),
     getPublicEnvs({context, request}),
+    customerAccount.isLoggedIn(),
   ]);
 
   const groupingsPromise = getProductGroupings(context);
 
-  const {isLoggedIn, headers: headersWithAccessToken} =
-    await validateCustomerAccessToken(session, customerAccessToken);
   let customer: Customer | null = null;
+
   if (isLoggedIn) {
-    const {data: customerData} = await customerGetAction({context});
-    if (customerData.customer) {
-      customer = customerData.customer;
-    }
+    const {data, errors} = await customerAccount.query(CUSTOMER_DETAILS_QUERY);
+    if (data?.customer && !errors?.length) customer = data.customer;
   }
+
   const cookieDomain = getCookieDomain(request.url);
+  const newHeaders = new Headers();
   const {headers: headersWithPackCookie} = await setPackCookie({
     cookieDomain,
-    headers: headersWithAccessToken,
+    headers: newHeaders,
     request,
   });
   const headers = headersWithPackCookie;
@@ -184,10 +182,10 @@ export async function loader({context, request}: LoaderFunctionArgs) {
   return dataWithOptions(
     {
       analytics,
+      cart: cart.get(),
       consent,
       cookieDomain,
       customer,
-      customerAccessToken,
       customizerMeta: pack.session.get('customizerMeta'),
       ENV: {...ENV, SITE_TITLE} as Record<string, string>,
       groupingsPromise,

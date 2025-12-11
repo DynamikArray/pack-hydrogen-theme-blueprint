@@ -1,24 +1,23 @@
-import {Footer} from 'modules/brilliant/Footer/Footer';
-import {Header} from 'modules/brilliant/Header';
-import type {ReactNode} from 'react';
+import clsx from "clsx";
+import { Footer } from "modules/brilliant/Footer/Footer";
+import { Header } from "modules/brilliant/Header";
+import type { ReactNode } from "react";
 
-import {Analytics} from '~/components/Analytics';
-import {Cart} from '~/components/Cart';
-import {Modal} from '~/components/Modal';
-import {ProductModal} from '~/components/Product/ProductModal';
-import {Search} from '~/components/Search';
+import { Analytics } from "~/components/Analytics";
+import { Cart } from "~/components/Cart";
+import { Modal } from "~/components/Modal";
+import { ProductModal } from "~/components/Product/ProductModal";
+import { Search } from "~/components/Search";
 import {
   useCartAddDiscountUrl,
   usePromobar,
   useScrollToHashOnNavigation,
   useSetViewportHeightCssVar,
-} from '~/hooks';
-import {usePreviewModeCustomerInit} from '~/lib/customer';
+} from "~/hooks";
 
-export function Layout({children}: {children: ReactNode}) {
-  const {mainPaddingTopClass} = usePromobar();
+export function Layout({ children }: { children: ReactNode }) {
+  const { mainPaddingTopClass } = usePromobar();
   useCartAddDiscountUrl();
-  usePreviewModeCustomerInit();
   useScrollToHashOnNavigation();
   useSetViewportHeightCssVar();
 
@@ -35,7 +34,7 @@ export function Layout({children}: {children: ReactNode}) {
         <main
           role="main"
           id="mainContent"
-          className={`grow ${mainPaddingTopClass}`}
+          className={clsx("grow", mainPaddingTopClass)}
         >
           {children}
         </main>
@@ -54,4 +53,4 @@ export function Layout({children}: {children: ReactNode}) {
   );
 }
 
-Layout.displayName = 'Layout';
+Layout.displayName = "Layout";

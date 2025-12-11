@@ -1,8 +1,8 @@
 import {memo} from 'react';
 import {Analytics as HydrogenAnalytics, useAnalytics} from '@shopify/hydrogen';
-import {useCart} from '@shopify/hydrogen-react';
 
 import {
+  useCart,
   useCustomer,
   useGlobal,
   usePathStorage,
@@ -37,8 +37,6 @@ export const Analytics = memo(() => {
   const enabledKlaviyo = !!ENV.PUBLIC_KLAVIYO_API_KEY;
   const enabledMetaPixel = !!ENV.PUBLIC_META_PIXEL_ID;
   const enabledTikTokPixel = !!ENV.PUBLIC_TIKTOK_PIXEL_ID;
-
-  const customerPending = typeof customer === 'undefined';
 
   return (
     <>
@@ -110,7 +108,7 @@ export const Analytics = memo(() => {
         />
       )}
 
-      {isCartReady && !customerPending && (
+      {isCartReady && (
         <HydrogenAnalytics.CustomView
           type={AnalyticsEvent.CUSTOMER}
           customData={{customer, cart}}

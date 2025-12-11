@@ -6,7 +6,7 @@ import type {
 
 import {PRODUCTS_QUERY} from '~/data/graphql/storefront/product';
 import {ADMIN_PRODUCT_ITEM_BY_ID_QUERY} from '~/data/graphql/admin/product';
-import {queryProducts} from '~/lib/products.server';
+import {queryProducts} from '~/lib/server-utils/product.server';
 import {normalizeAdminProduct} from '~/lib/utils';
 
 // Docs: https://shopify.dev/docs/api/storefront/latest/queries/products
@@ -37,13 +37,16 @@ export async function loader({request, context}: LoaderFunctionArgs) {
     queryIds = reverse ? [...queryIds].reverse() : queryIds;
 
     if (products?.length !== queryIds.length) {
-      const productsById = products?.reduce((acc, product) => {
-        const id = product.id?.split('/').pop();
-        if (id) {
-          acc[id] = product;
-        }
-        return acc;
-      }, {} as Record<string, Product>);
+      const productsById = products?.reduce(
+        (acc, product) => {
+          const id = product.id?.split('/').pop();
+          if (id) {
+            acc[id] = product;
+          }
+          return acc;
+        },
+        {} as Record<string, Product>,
+      );
       const productsWithDrafts = await Promise.all(
         queryIds.map(async (queryId) => {
           const id = queryId.replace('id:', '');
@@ -63,5 +66,5 @@ export async function loader({request, context}: LoaderFunctionArgs) {
     }
   }
 
-  return {totalProducts: products?.length ?? 0, products};
+  return Response.json({totalProducts: products?.length ?? 0, products});
 }

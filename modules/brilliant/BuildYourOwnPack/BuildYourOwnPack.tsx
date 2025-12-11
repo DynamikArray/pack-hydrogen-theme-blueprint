@@ -1,5 +1,4 @@
 import {useLocation} from '@remix-run/react';
-import {useCart} from '@shopify/hydrogen-react';
 import type {ProductVariant} from '@shopify/hydrogen-react/storefront-api-types';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 
@@ -17,7 +16,7 @@ import {useRandomProductFiller} from './hooks/useRandomProductFiller';
 import {Container} from '~/components/Container';
 import {Button} from '~/components/ui/button';
 import {Separator} from '~/components/ui/separator';
-import {useProductsByIds, useProductByHandle} from '~/hooks';
+import {useProductsByIds, useProductByHandle, useCart} from '~/hooks';
 import type {ProductCms} from '~/lib/types';
 
 export function BuildYourOwnPack({cms}: {cms: BuildYourOwnPackCms}) {

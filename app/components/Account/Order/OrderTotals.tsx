@@ -1,11 +1,13 @@
 import {useMemo} from 'react';
 import {Money} from '@shopify/hydrogen-react';
-import type {Order} from '@shopify/hydrogen/storefront-api-types';
+import clsx from 'clsx';
 
-export function OrderTotals({order}: {order: Order}) {
-  const currencyCode = order.currencyCode;
+import type {OrderTotalsProps} from './Order.types';
+
+export function OrderTotals({order}: OrderTotalsProps) {
+  const currencyCode = order.totalPrice?.currencyCode;
   const totals = useMemo(() => {
-    let subtotalAmount = order.subtotalPrice?.amount;
+    let subtotalAmount = order.subtotal?.amount;
     let discountAmount;
 
     if (
@@ -14,11 +16,7 @@ export function OrderTotals({order}: {order: Order}) {
       let subtotal = 0;
       let discountTotal = 0;
       order.lineItems.edges?.forEach(({node: item}) => {
-        subtotal += Number(
-          item.discountedTotalPrice?.amount ||
-            item.originalTotalPrice?.amount ||
-            '0',
-        );
+        subtotal += Number(item.price?.amount || '0');
         discountTotal += Number(
           item.discountAllocations?.[0]?.allocatedAmount?.amount || '0',
         );
@@ -42,7 +40,7 @@ export function OrderTotals({order}: {order: Order}) {
         : []),
       {
         label: 'Shipping',
-        amount: order.totalShippingPrice?.amount,
+        amount: order.totalShipping?.amount,
       },
       {label: 'Tax', amount: order.totalTax?.amount || '0'},
       {label: 'Total', amount: order.totalPrice?.amount || '0'},
@@ -69,9 +67,9 @@ export function OrderTotals({order}: {order: Order}) {
 
             <Money
               as="p"
-              className={`${
-                label === 'Total' ? 'text-lg font-bold' : 'text-sm'
-              }`}
+              className={clsx(
+                label === 'Total' ? 'text-lg font-bold' : 'text-sm',
+              )}
               data={{amount, currencyCode}}
             />
           </div>

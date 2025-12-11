@@ -1,5 +1,7 @@
-import {Spinner} from '~/components/Animations';
-import {Svg} from '~/components/Svg';
+import clsx from "clsx";
+
+import { Spinner } from "~/components/Animations";
+import { Svg } from "~/components/Svg";
 
 interface QuantitySelectorProps {
   className?: string;
@@ -15,7 +17,7 @@ interface QuantitySelectorProps {
 }
 
 export function QuantitySelector({
-  className = '',
+  className = "",
   disabled = false,
   disableDecrement = false,
   disableIncrement = false,
@@ -23,24 +25,27 @@ export function QuantitySelector({
   handleIncrement,
   hideButtons = false,
   isUpdating = false,
-  productTitle = 'product',
+  productTitle = "product",
   quantity = 1,
 }: QuantitySelectorProps) {
   return (
     <div
-      className={`flex w-full max-w-[6.5rem] items-center justify-between gap-2 ${className}`}
+      className={clsx(
+        "flex w-full max-w-[6.5rem] items-center justify-between gap-2",
+        className,
+      )}
     >
       <button
         aria-label={`Reduce quantity of ${productTitle} by 1 to ${
           quantity - 1
         }`}
-        className={`relative size-8 rounded-md border border-border transition disabled:opacity-50 ${
-          hideButtons ? 'invisible' : ''
-        } ${
+        className={clsx(
+          "relative size-8 rounded-md border border-border transition disabled:opacity-50",
+          hideButtons && "invisible",
           disableDecrement
-            ? 'cursor-not-allowed'
-            : 'md:hover:border-neutralLight'
-        }`}
+            ? "cursor-not-allowed"
+            : "md:hover:border-neutralLight",
+        )}
         disabled={disabled || isUpdating || disableDecrement}
         onClick={handleDecrement}
         type="button"
@@ -65,13 +70,13 @@ export function QuantitySelector({
         aria-label={`Increase quantity of ${productTitle} by 1 to ${
           quantity + 1
         }`}
-        className={`relative size-8 rounded-md border border-border transition disabled:opacity-50 md:hover:border-neutralLight ${
-          hideButtons ? 'invisible' : ''
-        } ${
+        className={clsx(
+          "relative size-8 rounded-md border border-border transition disabled:opacity-50 md:hover:border-neutralLight",
+          hideButtons && "invisible",
           disableIncrement
-            ? 'cursor-not-allowed'
-            : 'md:hover:border-neutralLight'
-        }`}
+            ? "cursor-not-allowed"
+            : "md:hover:border-neutralLight",
+        )}
         disabled={disabled || isUpdating || disableIncrement}
         onClick={handleIncrement}
         type="button"
@@ -87,4 +92,4 @@ export function QuantitySelector({
   );
 }
 
-QuantitySelector.displayName = 'QuantitySelector';
+QuantitySelector.displayName = "QuantitySelector";

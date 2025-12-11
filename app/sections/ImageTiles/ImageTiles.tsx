@@ -1,9 +1,10 @@
 import {useState} from 'react';
-import type {SwiperClass} from 'swiper/react';
 import {Swiper, SwiperSlide} from 'swiper/react';
+import clsx from 'clsx';
+import type {SwiperClass} from 'swiper/react';
 
 import {Container} from '~/components/Container';
-import {Spinner} from '~/components/Animations';
+import {SwiperSkeleton} from '~/components/SwiperSkeleton';
 
 import type {ImageTilesCms} from './ImageTiles.types';
 import {ImageTile} from './ImageTile';
@@ -27,6 +28,27 @@ export function ImageTiles({cms}: {cms: ImageTilesCms}) {
 
   const [swiper, setSwiper] = useState<SwiperClass | null>(null);
 
+  const breakpoints = {
+    mobile: {
+      slidesPerView: tilesPerViewMobile,
+      slidesOffsetBefore: 16,
+      slidesOffsetAfter: 16,
+      spaceBetween: 16,
+    },
+    tablet: {
+      slidesPerView: tilesPerViewTablet,
+      slidesOffsetBefore: 32,
+      slidesOffsetAfter: 32,
+      spaceBetween: 20,
+    },
+    desktop: {
+      slidesPerView: tilesPerViewDesktop,
+      slidesOffsetBefore: 0,
+      slidesOffsetAfter: 0,
+      spaceBetween: 20,
+    },
+  };
+
   const maxWidthClass = fullWidth
     ? 'max-w-none'
     : 'max-w-[var(--content-max-width)]';
@@ -37,7 +59,11 @@ export function ImageTiles({cms}: {cms: ImageTilesCms}) {
       <div className="lg:px-contained overflow-x-clip py-4 md:py-6">
         {(!!heading || !!subheading) && (
           <div
-            className={`max-lg:px-contained mx-auto mb-6 flex w-full flex-col gap-2 ${alignment} ${maxWidthClass}`}
+            className={clsx(
+              'max-lg:px-contained mx-auto mb-6 flex w-full flex-col gap-2',
+              alignment,
+              maxWidthClass,
+            )}
             style={{color: textColor}}
           >
             {heading && <h2 className="text-h2">{heading}</h2>}
@@ -45,35 +71,26 @@ export function ImageTiles({cms}: {cms: ImageTilesCms}) {
           </div>
         )}
 
-        <div className={`mx-auto ${maxWidthClass}`}>
+        <div className={clsx('mx-auto', maxWidthClass)}>
           {tiles?.length > 0 && (
             <>
               {/* mobile/tablet/desktop */}
               <div
-                className={`relative [&_.swiper]:overflow-visible ${
-                  isGridOnDesktop ? 'lg:hidden' : ''
-                }`}
+                className={clsx(
+                  'relative [&_.swiper]:overflow-visible',
+                  isGridOnDesktop && 'lg:hidden',
+                )}
               >
                 <Swiper
                   grabCursor
                   onSwiper={setSwiper}
-                  slidesOffsetAfter={16}
-                  slidesOffsetBefore={16}
-                  slidesPerView={tilesPerViewMobile}
-                  spaceBetween={16}
+                  slidesOffsetAfter={breakpoints.mobile.slidesOffsetAfter}
+                  slidesOffsetBefore={breakpoints.mobile.slidesOffsetBefore}
+                  slidesPerView={breakpoints.mobile.slidesPerView}
+                  spaceBetween={breakpoints.mobile.spaceBetween}
                   breakpoints={{
-                    768: {
-                      slidesPerView: tilesPerViewTablet,
-                      slidesOffsetBefore: 32,
-                      slidesOffsetAfter: 32,
-                      spaceBetween: 20,
-                    },
-                    1024: {
-                      slidesPerView: tilesPerViewDesktop,
-                      slidesOffsetBefore: 0,
-                      slidesOffsetAfter: 0,
-                      spaceBetween: 20,
-                    },
+                    768: breakpoints.tablet,
+                    1024: breakpoints.desktop,
                   }}
                 >
                   {swiper &&
@@ -91,9 +108,14 @@ export function ImageTiles({cms}: {cms: ImageTilesCms}) {
                 </Swiper>
 
                 {!swiper && (
-                  <div className="flex min-h-[25rem] items-center justify-center">
-                    <Spinner width="32" />
-                  </div>
+                  <SwiperSkeleton breakpoints={breakpoints}>
+                    <div
+                      className={clsx(
+                        'bg-neutralLightest animate-pulse',
+                        aspectRatio,
+                      )}
+                    />
+                  </SwiperSkeleton>
                 )}
               </div>
 
