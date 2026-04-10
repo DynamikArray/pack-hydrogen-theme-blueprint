@@ -1,8 +1,9 @@
 import {useProduct} from '@shopify/hydrogen-react';
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useMemo} from 'react';
 
 //import {ProductMetafields} from './ProductMetafields';
 import {Breadcrumbs} from '../components/Breadcrumbs';
+import {RelatedProducts} from '../RelatedProducts';
 
 import {ADDITIONAL_VARIANT_NAMES} from './additionalVariantNames';
 import type {ProductProps} from './Product.types';
@@ -11,7 +12,7 @@ import {ProductHeader} from './ProductHeader';
 import {ProductMarketing} from './ProductMarketing/ProductMarketing';
 import {ProductMedia} from './ProductMedia/ProductMedia';
 
-import {useLocale, useParsedProductMetafields, useSettings} from '~/hooks';
+import {useLocale, useSettings} from '~/hooks';
 import {COLOR_OPTION_NAME} from '~/lib/constants';
 import type {SelectedVariant} from '~/lib/types';
 
@@ -82,72 +83,79 @@ export function Product({
     : 'md:top-[calc(var(--header-height-desktop)+2.5rem)] xl:top-[calc(var(--header-height-desktop)+3rem)]';
 
   return (
-    <section data-comp="product">
-      <div className="md:px-contained">
-        <div className="mx-auto max-w-screen-xl py-1 pb-4 md:pb-6 lg:pb-8">
-          <Breadcrumbs product={product} />
-        </div>
-        <div className="mx-auto grid max-w-screen-xl grid-cols-1 gap-y-5 md:grid-cols-2 md:grid-rows-[auto_1fr] md:gap-y-4">
-          {/* mobile header placement */}
-          {/* note: remove this component if mobile header shares same placement as desktop */}
-          <ProductHeader
-            isMobile
-            isModalProduct={isModalProduct}
-            product={product}
-            selectedVariant={selectedVariant}
-            selectedVariantColor={selectedVariantColor}
-            settings={productSettings}
-          />
+    <>
+      <section data-comp="product">
+        <div className="md:px-contained">
+          <div className="mx-auto max-w-screen-xl py-1 pb-4 md:pb-6 lg:pb-8">
+            <Breadcrumbs product={product} />
+          </div>
+          <div className="mx-auto grid max-w-screen-xl grid-cols-1 gap-y-5 md:grid-cols-2 md:grid-rows-[auto_1fr] md:gap-y-4">
+            {/* mobile header placement */}
+            {/* note: remove this component if mobile header shares same placement as desktop */}
+            <ProductHeader
+              isMobile
+              isModalProduct={isModalProduct}
+              product={product}
+              selectedVariant={selectedVariant}
+              selectedVariantColor={selectedVariantColor}
+              settings={productSettings}
+            />
 
-          <div>
-            <div
-              className={`md:sticky ${
-                isModalProduct ? 'md:top-10 lg:top-12' : stickyTopClass
-              }`}
-            >
-              <ProductMedia
-                product={product}
-                selectedVariant={selectedVariant}
-                selectedVariantColor={selectedVariantColor}
-              />
+            <div>
+              <div
+                className={`md:sticky ${
+                  isModalProduct ? 'md:top-10 lg:top-12' : stickyTopClass
+                }`}
+              >
+                <ProductMedia
+                  product={product}
+                  selectedVariant={selectedVariant}
+                  selectedVariantColor={selectedVariantColor}
+                />
 
-              <hr className="mt-6" />
+                <hr className="mt-6" />
 
-              <ProductMarketing product={product} />
+                <ProductMarketing product={product} />
+              </div>
+            </div>
+
+            <div className="max-md:px-4 md:pl-4 lg:pl-10 xl:pl-16">
+              <div
+                className={`flex flex-col gap-y-4 md:sticky ${
+                  isModalProduct ? 'md:top-10 lg:top-12' : stickyTopClass
+                }`}
+              >
+                {/* desktop header placement */}
+                <ProductHeader
+                  isModalProduct={isModalProduct}
+                  product={product}
+                  selectedVariant={selectedVariant}
+                  selectedVariantColor={selectedVariantColor}
+                  settings={productSettings}
+                />
+
+                <ProductDetails
+                  enabledQuantitySelector={
+                    productSettings?.quantitySelector?.enabled
+                  }
+                  isModalProduct={isModalProduct}
+                  product={product}
+                  selectedVariant={selectedVariant}
+                  bundleConfig={bundleConfig}
+                />
+
+                {/* <ProductMetafields product={product} /> */}
+              </div>
             </div>
           </div>
-
-          <div className="max-md:px-4 md:pl-4 lg:pl-10 xl:pl-16">
-            <div
-              className={`flex flex-col gap-y-4 md:sticky ${
-                isModalProduct ? 'md:top-10 lg:top-12' : stickyTopClass
-              }`}
-            >
-              {/* desktop header placement */}
-              <ProductHeader
-                isModalProduct={isModalProduct}
-                product={product}
-                selectedVariant={selectedVariant}
-                selectedVariantColor={selectedVariantColor}
-                settings={productSettings}
-              />
-
-              <ProductDetails
-                enabledQuantitySelector={
-                  productSettings?.quantitySelector?.enabled
-                }
-                isModalProduct={isModalProduct}
-                product={product}
-                selectedVariant={selectedVariant}
-                bundleConfig={bundleConfig}
-              />
-
-              {/* <ProductMetafields product={product} /> */}
-            </div>
-          </div>
         </div>
-      </div>
-    </section>
+      </section>
+      <section>
+        {!isModalProduct && !isSectionProduct && (
+          <RelatedProducts product={product} />
+        )}
+      </section>
+    </>
   );
 }
 
